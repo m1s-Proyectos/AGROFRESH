@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${errorTitle} + ' | AGROFRESH'">Error | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css}">
+</head>
+<body class="error-page">
+<main class="error-card">
+    <a class="brand error-brand" th:href="@{/}" aria-label="AGROFRESH, inicio">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span class="brand-name">AGRO<span>FRESH</span></span>
+    </a>
+    <p class="error-code" th:text="${status}">404</p>
+    <h1 th:text="${errorTitle}">No encontramos lo que buscas</h1>
+    <p th:text="${errorMessage}">El recurso solicitado no existe o ya no está disponible.</p>
+    <a class="back-link" th:href="@{/}">Volver al inicio <span aria-hidden="true">→</span></a>
+</main>
+</body>
+</html>

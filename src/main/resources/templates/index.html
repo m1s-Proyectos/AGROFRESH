@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Dashboard | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar}"></div>
+        <main class="main-content">
+            <div class="eyebrow"><span class="eyebrow-line"></span> SISTEMA DE INVENTARIO</div>
+            <section class="welcome-section" aria-labelledby="welcome-title">
+                <div class="welcome-copy">
+                    <p class="date-label">CONTROL CLARO. CRECIMIENTO SOSTENIBLE.</p>
+                    <h1 id="welcome-title">Todo empieza<br>con <em>una buena</em><br>gestión.</h1>
+                    <p class="welcome-description">Bienvenido a AGROFRESH, el espacio para cuidar cada recurso de tu operación agrícola.</p>
+                </div>
+                <div class="welcome-art" aria-hidden="true">
+                    <div class="sun"></div>
+                    <div class="field field-back"></div>
+                    <div class="field field-middle"></div>
+                    <div class="field field-front"></div>
+                    <div class="art-caption"><span>01</span> DEL CAMPO A TU INVENTARIO</div>
+                </div>
+            </section>
+
+            <section class="modules-section" aria-labelledby="modules-title">
+                <div class="section-title-row">
+                    <div>
+                        <p class="section-kicker">TU ESPACIO DE TRABAJO</p>
+                        <h2 id="modules-title">Módulos del sistema</h2>
+                    </div>
+                    <span class="availability"><span></span> Preparando el terreno</span>
+                </div>
+                <div class="module-grid">
+                    <article class="module-card">
+                        <span class="card-index">01 — 08</span>
+                        <div class="module-symbol symbol-sage" aria-hidden="true">✳</div>
+                        <h3>Gestión centralizada</h3>
+                        <p>Usuarios, productos y proveedores, en un solo lugar.</p>
+                        <span class="module-state">En preparación</span>
+                    </article>
+                    <article class="module-card">
+                        <span class="card-index">02 — 08</span>
+                        <div class="module-symbol symbol-ochre" aria-hidden="true">⌁</div>
+                        <h3>Control de inventario</h3>
+                        <p>Visibilidad clara de existencias, lotes y movimientos.</p>
+                        <span class="module-state">En preparación</span>
+                    </article>
+                    <article class="module-card">
+                        <span class="card-index">03 — 08</span>
+                        <div class="module-symbol symbol-terracotta" aria-hidden="true">↗</div>
+                        <h3>Compras y reportes</h3>
+                        <p>Información para tomar mejores decisiones cada día.</p>
+                        <span class="module-state">En preparación</span>
+                    </article>
+                </div>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
