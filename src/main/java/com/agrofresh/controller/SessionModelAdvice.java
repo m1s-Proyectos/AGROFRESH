@@ -29,9 +29,10 @@ public class SessionModelAdvice {
         String nombre = jdbc.query(
             "SELECT nombre || ' ' || apellido FROM usuario WHERE username = ?",
             rs -> rs.next() ? rs.getString(1) : username, username);
-        String rol = authentication.getAuthorities().stream()
-            .map(a -> a.getAuthority()).filter(a -> a.startsWith("ROLE_"))
-            .map(a -> a.substring(5)).findFirst().orElse("");
+        // Consultar el rol vigente evita mostrar uno antiguo si el administrador lo cambió.
+        String rol = jdbc.query(
+            "SELECT r.nombre FROM usuario u JOIN rol r ON r.id_rol=u.id_rol WHERE u.username=?",
+            rs -> rs.next() ? rs.getString(1) : "", username);
         String fecha = LocalDate.now(ZoneId.of("America/El_Salvador"))
             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("es", "SV")));
         return new SesionVista(username, nombre, rol, fecha);
