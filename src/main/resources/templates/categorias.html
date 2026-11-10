@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Categorías | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv1')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('categorias')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> PRODUCTOS / CATEGORÍAS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">ORDEN PARA CADA FAMILIA DE PRODUCTOS.</p>
+                    <h1>Gestión de <em>categorías.</em></h1>
+                    <p>Organiza el catálogo con nombres claros y descripciones útiles para el equipo.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="inventario-panel categorias-panel" aria-labelledby="categorias-title">
+                <div class="panel-topline categorias-panel-heading">
+                    <div>
+                        <span class="section-kicker">CATÁLOGO</span>
+                        <h2 id="categorias-title">Categorías registradas</h2>
+                    </div>
+                    <div class="categorias-toolbar">
+                        <label class="categoria-search" for="buscarCategorias">
+                            <span>Buscar por nombre</span>
+                            <input id="buscarCategorias" type="search" placeholder="Ej.: Lácteos" autocomplete="off">
+                        </label>
+                        <a class="categoria-primary-action" th:if="${puedeRegistrar}" th:href="@{/categorias/nueva}">
+                            <span aria-hidden="true">＋</span> Registrar categoría
+                        </a>
+                    </div>
+                </div>
+
+                <div class="inventario-table-wrap categorias-table-wrap">
+                    <table class="inventario-table categorias-table">
+                        <caption class="visually-hidden">Categorías del catálogo</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Descripción</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="filasCategorias">
+                        <tr th:each="categoria : ${categorias}">
+                            <td class="categoria-id" th:text="${categoria.idCategoria}">1</td>
+                            <td><strong th:text="${categoria.nombre}">Lácteos</strong></td>
+                            <td class="categoria-description"
+                                th:text="${#strings.isEmpty(categoria.descripcion) ? 'Sin descripción' : categoria.descripcion}">Productos refrigerados</td>
+                            <td>
+                                <div class="categoria-row-actions">
+                                    <a class="categoria-secondary-action"
+                                       th:href="@{/categorias/consultar/{id}(id=${categoria.idCategoria})}">Consultar</a>
+                                    <a class="categoria-secondary-action categoria-edit-action"
+                                       th:if="${puedeEditar}"
+                                       th:href="@{/categorias/editar/{id}(id=${categoria.idCategoria})}">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p class="inventario-empty categorias-empty" id="sinCategorias"
+                       th:if="${#lists.isEmpty(categorias)}">Todavía no hay categorías registradas.</p>
+                    <p class="inventario-empty categorias-empty" id="sinResultados" hidden>
+                        No se encontraron categorías con ese nombre.
+                    </p>
+                </div>
+                <p class="inventario-nota">Las categorías describen el catálogo; esta pantalla no modifica productos ni existencias.</p>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script>
+(() => {
+    const search = document.getElementById('buscarCategorias');
+    const rows = Array.from(document.querySelectorAll('#filasCategorias tr'));
+    const noResults = document.getElementById('sinResultados');
+    let timer;
+    search.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const term = search.value.trim().toLocaleLowerCase('es');
+            let visible = 0;
+            for (const row of rows) {
+                const matches = row.textContent.toLocaleLowerCase('es').includes(term);
+                row.hidden = !matches;
+                if (matches) visible++;
+            }
+            noResults.hidden = visible > 0 || rows.length === 0;
+        }, 120);
+    });
+})();
+</script>
+</body>
+</html>

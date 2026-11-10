@@ -159,3 +159,96 @@ h1, h2, h3 { color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Enlace a traslados desde la tarjeta de inventario */
+.module-action { display:inline-flex; gap:8px; margin-top:14px; color:#537a4e; font-size:10px; text-decoration:none; font-weight:700; border-bottom:1px solid #b7c8ac; padding-bottom:3px; }
+.module-action:hover { color:var(--forest); }
+.nav-subitem {padding-left:32px; font-size:11px;}
+
+/* Identidad del usuario y cierre de sesión */
+.topbar-right{display:flex;align-items:center;gap:22px;}
+.topbar-date{font-size:12px;color:#d0dfcb;letter-spacing:.06em;white-space:nowrap;}
+.account-menu{position:relative;min-width:180px;z-index:50;}
+.account-menu summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:6px;}
+.account-menu summary::-webkit-details-marker{display:none;}
+.account-menu[open] summary,.account-menu summary:hover{background:#2b513b;}
+.account-avatar{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#dbe8d1;color:#183e29;font-weight:700;text-transform:uppercase;}
+.account-identity{display:flex;flex-direction:column;gap:2px;min-width:0;max-width:180px;}
+.account-identity strong{font-size:12px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.account-identity small{font-size:10px;letter-spacing:.09em;color:#a9c69f;}
+.account-dropdown{position:absolute;right:0;top:calc(100% + 7px);min-width:210px;padding:11px;background:#fffefa;color:#1b2c22;border:1px solid #e5e7df;box-shadow:0 14px 36px #0d261a30;border-radius:6px;}
+.account-username{display:block;padding:9px;font-size:12px;color:#64746a;border-bottom:1px solid #e7eadd;}
+.account-dropdown form{margin:0;padding-top:8px;}
+.account-dropdown button{display:block;width:100%;background:transparent;text-align:left;padding:11px 9px;border:none;border-radius:4px;cursor:pointer;color:#8b352d;font-weight:700;font-size:12px;}
+.account-dropdown button:hover{background:#f8ece9;}
+@media(max-width:650px){.topbar{padding:0 14px;}.topbar-right{gap:8px;}.account-identity{max-width:95px;}.topbar-date{font-size:10px;}}
+
+/* Encabezado compacto y menú de cuenta */
+.account-menu{position:relative;min-width:0;z-index:100;}
+.account-menu summary{width:42px;height:42px;display:grid;place-items:center;color:#f4f3e8;border:1px solid #6b8875;border-radius:50%;padding:0;cursor:pointer;}
+.account-menu summary:hover,.account-menu[open] summary{background:#2b513b;}
+.account-dropdown{width:245px;min-width:245px;padding:13px;}
+.account-display-name{display:block;margin:5px 9px 4px;font-size:13px;}
+.account-role{display:block;margin:0 9px 6px;color:#51734e;font-size:10px;font-weight:700;letter-spacing:.08em;}
+.account-username{padding:8px 9px 12px;}
+.account-action{display:block;color:#223b2c;text-decoration:none;font-size:12px;font-weight:700;padding:12px 9px;border-radius:4px;}
+.account-action:hover{background:#edf3e9;}
+.simple-panel{max-width:740px;margin:45px auto;padding:42px;background:#fffefa;border:1px solid #e6e7dd;}
+.simple-panel h1{font:400 37px Georgia,serif;margin:7px 0 18px;}
+.simple-panel p{color:#65786b;font-size:14px;line-height:1.8;}
+.profile-data{display:grid;grid-template-columns:120px 1fr;gap:17px;padding:22px 0;border-top:1px solid #e6e7dd;}
+.profile-data dt{color:#778078;font-size:12px;}.profile-data dd{margin:0;font-size:13px;overflow-wrap:anywhere;}
+@media(max-width:650px){.account-menu{min-width:0}.topbar-right{gap:12px}.simple-panel{padding:24px;margin:25px 0}}
+
+/* Menú desplegable del perfil: evita estilos globales de Bootstrap. */
+.topbar .topbar-right {display:flex;align-items:center;gap:18px;flex-shrink:0;position:relative;}
+.topbar .topbar-date {display:inline-block;margin:0;font-size:12px;line-height:1.2;color:#e5eadf;}
+.topbar .account-menu {display:block;position:relative;min-width:0;margin:0;z-index:150;}
+.topbar .account-menu > summary {display:grid;place-items:center;list-style:none;width:40px;height:40px;padding:0;margin:0;border:1px solid #77937c;border-radius:50%;cursor:pointer;color:#fff;}
+.topbar .account-menu > summary::-webkit-details-marker {display:none;}
+.topbar .account-menu .account-dropdown {position:absolute;right:0;left:auto;top:calc(100% + 9px);display:flex;flex-direction:column;width:242px;min-width:242px;max-width:calc(100vw - 24px);margin:0;padding:14px;background:#fffefa;color:#1b2c22;border:1px solid #dee7db;border-radius:9px;box-shadow:0 16px 40px #0d261a40;white-space:normal;}
+.topbar .account-dropdown .account-display-name {display:block;margin:0;padding:0 3px;font-size:13px;line-height:1.5;color:#203e2a;overflow-wrap:anywhere;}
+.topbar .account-dropdown .account-role {display:block;margin:5px 0 0;padding:0 3px;color:#578052;font-size:10px;font-weight:700;letter-spacing:.07em;}
+.topbar .account-dropdown .account-username {display:block;margin:0 0 10px;padding:4px 3px 13px;border-bottom:1px solid #e7eadd;font-size:11px;color:#7b887c;overflow-wrap:anywhere;}
+.topbar .account-dropdown .account-action,.topbar .account-dropdown button {display:block;width:100%;padding:11px 10px;margin:0;border:0;border-radius:5px;background:transparent;text-align:left;text-decoration:none;font:600 12px 'Trebuchet MS',sans-serif;line-height:1.4;cursor:pointer;}
+.topbar .account-dropdown .account-action {color:#203e2a;}
+.topbar .account-dropdown .account-action:hover {background:#eef4e9;}
+.topbar .account-dropdown form {margin:0;padding:4px 0 0;border-top:1px solid #e7eadd;}
+.topbar .account-dropdown button {color:#9d4037;}
+.topbar .account-dropdown button:hover {background:#faedea;}
+@media(max-width:500px) {.topbar .topbar-right{gap:9px}.topbar .topbar-date{font-size:10px}}
+
+
+/* Tarjeta de cuenta — estilos aislados del resto del encabezado y Bootstrap. */
+.topbar .agro-account {position:relative;z-index:600;}
+.topbar .agro-account > summary {transition:background .15s ease, border-color .15s ease;}
+.topbar .agro-account[open] > summary {background:#315b42;border-color:#a5c4a2;}
+.topbar .agro-account .agro-account-card {
+  display:block;position:absolute;right:0;left:auto;top:calc(100% + 12px);
+  width:286px;min-width:286px;max-width:calc(100vw - 24px);box-sizing:border-box;
+  padding:17px 16px 12px;background:#fffefa;border:1px solid #dce8d9;
+  border-radius:14px;box-shadow:0 20px 48px rgba(13,38,26,.22);
+  color:#203e2a;white-space:normal;line-height:1.4;z-index:601;
+}
+.topbar .agro-account .agro-account-heading {display:flex;align-items:center;gap:12px;min-width:0;}
+.topbar .agro-account .agro-account-emblem {display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:12px;background:#e8f1e3;color:#35654a;}
+.topbar .agro-account .agro-account-identity {display:flex;flex-direction:column;gap:3px;min-width:0;}
+.topbar .agro-account .agro-account-identity strong {display:block;color:#1c3525;font-size:13px;font-weight:700;overflow-wrap:anywhere;}
+.topbar .agro-account .agro-account-identity span {font-size:11px;color:#738276;overflow-wrap:anywhere;}
+.topbar .agro-account .agro-account-badge {display:inline-block;margin:13px 0 3px 56px;padding:5px 9px;border-radius:20px;background:#eff5e9;color:#49754d;font-size:10px;font-weight:700;letter-spacing:.04em;}
+.topbar .agro-account .agro-account-divider {height:1px;background:#e4eae0;margin:12px 0 8px;}
+.topbar .agro-account .agro-account-link {box-sizing:border-box;display:flex;align-items:center;gap:11px;width:100%;margin:0;padding:12px 10px;border:0;border-radius:9px;background:transparent;color:#2b4733;font:600 13px 'Trebuchet MS',Arial,sans-serif;line-height:1.3;text-decoration:none;text-align:left;cursor:pointer;}
+.topbar .agro-account .agro-account-link:hover {background:#edf4e9;color:#21442c;}
+.topbar .agro-account .agro-account-chevron {margin-left:auto;color:#8a9d8d;}
+.topbar .agro-account .agro-account-logout {margin:5px 0 0;padding:7px 0 0;border-top:1px solid #e4eae0;}
+.topbar .agro-account .agro-account-exit {color:#9d443b;}
+.topbar .agro-account .agro-account-exit:hover {background:#fcf0ec;color:#92352b;}
+.topbar .agro-account .agro-account-link:focus-visible,.topbar .agro-account > summary:focus-visible {outline:2px solid #c5b465;outline-offset:2px;}
+@media(max-width:450px){.topbar .agro-account .agro-account-card{right:-6px;width:270px;min-width:270px;}}
+
+/* Prioridad real del encabezado: las acciones del perfil deben recibir clics. */
+.topbar {position:relative;z-index:1000;overflow:visible;}
+.topbar .topbar-right {position:relative;z-index:1001;}
+.topbar .agro-account[open] {z-index:1002;}
+.topbar .agro-account .agro-account-card {z-index:1003;pointer-events:auto;}
+.topbar .agro-account .agro-account-exit {pointer-events:auto;position:relative;z-index:1;}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usuarios | AGROFRESH</title><link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+<link rel="stylesheet" th:href="@{/css/usuarios.css}"></head>
+<body><div class="app-shell">
+<div th:replace="~{layout/header :: header}"></div>
+<div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('usuarios')}"></div>
+<main class="main-content">
+  <div class="eyebrow"><span class="eyebrow-line"></span> SEGURIDAD / USUARIOS</div>
+  <section class="usuarios-intro"><p class="section-kicker">CONTROL DE ACCESO</p><h1>Gestión de <em>usuarios.</em></h1>
+  <p>Consulta las cuentas y administra su estado sin eliminarlas de PostgreSQL.</p></section>
+  <div class="usuarios-aviso exito" th:if="${exito}" th:text="${exito}"></div>
+  <div class="usuarios-aviso error" th:if="${error}" th:text="${error}"></div>
+  <section class="usuarios-panel">
+    <div class="usuarios-panel-header"><div><p class="section-kicker">CUENTAS REGISTRADAS</p><h2>Usuarios del sistema</h2></div>
+    <label class="usuarios-buscar"><span>Buscar usuario</span><input id="buscarUsuarios" type="search" placeholder="Nombre, username o rol..." autocomplete="off"></label></div>
+    <div class="usuarios-scroll"><table class="usuarios-tabla"><thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody id="filasUsuarios">
+      <tr th:each="u : ${usuarios}">
+        <td><strong th:text="${u.nombre + ' ' + u.apellido}">Nombre</strong><small th:text="${'@' + u.username}">@usuario</small></td>
+        <td th:text="${u.correo}">correo</td><td th:text="${u.rol}">OPERATIVO</td>
+        <td><span class="estado" th:classappend="${!u.activo} ? 'estado-inactivo' : (${u.bloqueado} ? 'estado-bloqueado' : 'estado-activo')"
+             th:text="${!u.activo} ? 'Inactivo' : (${u.bloqueado} ? 'Bloqueado' : 'Activo')">Activo</span></td>
+        <td><div class="usuarios-acciones" th:if="${puedeEditar and u.username != sesion.username}">
+          <form th:action="@{/usuarios/{id}/estado(id=${u.id_usuario})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="activo" th:value="${!u.activo}">
+            <button type="submit" th:classappend="${u.activo} ? 'btn-baja' : 'btn-reactivar'" th:text="${u.activo} ? 'Dar de baja' : 'Reactivar'"
+                onclick="return confirm('¿Confirmar cambio de estado de esta cuenta?')">Acción</button>
+          </form>
+          <form th:action="@{/usuarios/{id}/bloqueo(id=${u.id_usuario})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="bloqueado" th:value="${!u.bloqueado}">
+            <button type="submit" th:text="${u.bloqueado} ? 'Desbloquear' : 'Bloquear'"
+                onclick="return confirm('¿Confirmar cambio de bloqueo de esta cuenta?')">Bloquear</button>
+          </form>
+        </div><span th:unless="${puedeEditar and u.username != sesion.username}" class="usuarios-sin-accion">—</span></td>
+      </tr>
+    </tbody></table></div>
+    <p id="sinResultados" hidden>No se encontraron usuarios con ese criterio.</p>
+  </section>
+  <p class="usuarios-nota">La baja impide el acceso sin borrar el registro. El bloqueo es independiente y requiere desbloqueo antes de iniciar sesión.</p>
+  <div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+<script>
+const buscador = document.getElementById('buscarUsuarios');
+const filas = Array.from(document.querySelectorAll('#filasUsuarios tr'));
+buscador.addEventListener('input', () => {
+  const texto = buscador.value.trim().toLocaleLowerCase('es');
+  let visibles = 0;
+  for (const fila of filas) {
+    const visible = fila.textContent.toLocaleLowerCase('es').includes(texto);
+    fila.hidden = !visible;
+    if (visible) visibles++;
+  }
+  document.getElementById('sinResultados').hidden = visibles > 0;
+});
+</script></body></html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">
+<title>Recepción de mercadería | AGROFRESH</title>
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+<link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+<link rel="stylesheet" th:href="@{/css/traslados.css}">
+<link rel="stylesheet" th:href="@{/css/recepcion.css(v='20261110r1')}">
+</head>
+<body><div class="app-shell">
+<div th:replace="~{layout/header :: header}"></div>
+<div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('compras')}"></div>
+<main class="main-content traslado-main">
+  <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / RECEPCIÓN</div>
+  <section class="traslado-intro"><div><p class="date-label">CONTROL DE INGRESOS · UNA COMPRA, VARIOS PRODUCTOS.</p>
+    <h1>Recepción de <em>mercadería.</em></h1>
+    <p>Registra la entrada por compra, conserva el control de lotes y actualiza las existencias en bodega.</p>
+  </div><div class="traslado-emblem" aria-hidden="true">＋</div></section>
+  <div class="recepcion-layout">
+  <section class="traslado-panel" aria-label="Formulario de recepción">
+    <div class="panel-topline"><div><span class="section-kicker">NUEVA COMPRA</span><h2>Registrar recepción</h2></div><span class="operation-tag">Entrada de mercadería</span></div>
+    <p id="estado" class="catalogo-estado" role="status">Cargando proveedores y bodegas…</p>
+    <div class="form-subtitle"><span>01</span> Proveedor y bodega</div>
+    <div class="traslado-grid">
+      <div class="traslado-field"><label for="proveedor">Proveedor</label><select id="proveedor" disabled><option value="">Selecciona proveedor</option></select></div>
+      <div class="traslado-field"><label for="bodega">Bodega que recibe</label><select id="bodega" disabled><option value="">Selecciona bodega</option></select></div>
+    </div>
+    <div class="form-subtitle second"><span>02</span> Agregar productos a la compra</div>
+    <div class="traslado-field"><label for="buscar">Buscar producto por nombre o código</label><input id="buscar" type="search" placeholder="Escribe para filtrar los productos…" disabled></div>
+    <div class="traslado-grid recepcion-fields">
+      <div class="traslado-field wide"><label for="producto">Producto del catálogo del proveedor</label><select id="producto" disabled><option value="">Selecciona primero un proveedor</option></select><small id="info-tipo">Se mostrarán productos que este proveedor puede suministrar.</small></div>
+      <div class="traslado-field"><label for="cantidad">Cantidad a recibir</label><input id="cantidad" type="number" min="1" step="1" placeholder="Unidades" disabled></div>
+      <div class="traslado-field" id="fecha-campo" hidden><label for="vencimiento">Vencimiento del lote</label><input id="vencimiento" type="date"></div>
+    </div>
+    <div class="recepcion-add"><button type="button" id="agregar" disabled>+ Agregar producto</button></div>
+    <h3 class="form-subtitle second"><span>03</span> Detalle de la compra</h3>
+    <div class="recepcion-table-wrap"><table class="recepcion-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead><tbody id="lineas"><tr><td colspan="5" class="muted-row">Aún no has agregado productos.</td></tr></tbody></table></div>
+    <div class="recepcion-total"><span>Total estimado de la compra</span><strong id="total">$0.00</strong></div>
+    <div class="traslado-actions"><p>Los precios finales se calculan en PostgreSQL. Si una entrada falla, se revierte toda la compra.</p>
+      <button type="button" id="confirmar" disabled>Confirmar recepción <span aria-hidden="true">→</span></button></div>
+  </section>
+  <aside class="traslado-aside"><span class="section-kicker">CÓMO FUNCIONA</span><h2>Una compra,<br><em>varias entradas.</em></h2>
+    <p>Selecciona un proveedor y una bodega. Agrega uno o varios productos del catálogo del proveedor.</p>
+    <div class="aside-divider"></div><p class="aside-tip"><span>✳</span> Para perecederos se solicita vencimiento y PostgreSQL crea el lote correlativo automáticamente.</p>
+    <p>Los productos no perecederos utilizan la fecha de fabricación y vida útil ya registradas en su ficha.</p>
+    <a class="return-link" th:href="@{/}">← Volver al Dashboard</a></aside>
+  </div><div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+<script th:inline="javascript">const puedeRegistrar = /*[[${puedeRegistrar}]]*/ false;</script>
+<script th:src="@{/js/recepcion.js(v='20261110r1')}"></script>
+</body></html>
