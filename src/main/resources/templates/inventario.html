@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta de inventario | AGROFRESH</title>
+<link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+<link rel="stylesheet" th:href="@{/css/traslados.css}">
+<link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv1')}">
+</head>
+<body><div class="app-shell">
+<div th:replace="~{layout/header :: header}"></div>
+<div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('inventario')}"></div>
+<main class="main-content traslado-main">
+  <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / CONSULTAS</div>
+  <section class="traslado-intro"><div>
+    <p class="date-label">EXISTENCIAS ACTUALIZADAS POR BODEGA.</p>
+    <h1>Control de <em>inventario.</em></h1>
+    <p>Consulta las unidades disponibles y los niveles mínimos. Los movimientos de entrada y traslado se reflejan aquí automáticamente.</p>
+  </div><div class="traslado-emblem" aria-hidden="true">▤</div></section>
+
+  <section class="inventario-panel">
+    <div class="panel-topline"><div><span class="section-kicker">CONSULTA DE EXISTENCIAS</span><h2>Inventario por bodega</h2></div><span class="operation-tag">Solo lectura</span></div>
+    <form id="filtros-inventario" class="inventario-filtros" method="get" th:action="@{/inventario}">
+      <div class="traslado-field"><label for="buscar">Buscar producto o código</label>
+        <input type="search" id="buscar" name="buscar" th:value="${buscar}" placeholder="Ej.: arroz, AGF-0016" autocomplete="off"></div>
+      <div class="traslado-field"><label for="bodega">Bodega</label>
+        <select id="bodega" name="bodega"><option value="">Todas las bodegas</option>
+          <option th:each="b : ${bodegas}" th:value="${b.id_bodega}" th:text="${b.nombre + ' — ' + b.ubicacion}" th:selected="${bodegaSeleccionada != null and b.id_bodega == bodegaSeleccionada}">Bodega</option>
+        </select></div>
+      <div class="traslado-field"><label for="estado">Estado de existencias</label>
+        <select id="estado" name="estado"><option value="todos" th:selected="${estadoSeleccionado == 'todos'}">Todos</option>
+          <option value="bajo" th:selected="${estadoSeleccionado == 'bajo'}">Bajo mínimo</option>
+          <option value="agotado" th:selected="${estadoSeleccionado == 'agotado'}">Agotado</option>
+          <option value="disponible" th:selected="${estadoSeleccionado == 'disponible'}">Disponible</option>
+        </select></div>
+      <div class="inventario-filter-actions"><button type="submit">Buscar</button><a th:href="@{/inventario}">Limpiar</a></div>
+    </form>
+    <div class="inventario-resumen" aria-live="polite">
+      <div><span>Registros encontrados</span><strong th:text="${totalFilas}">0</strong></div>
+      <div><span>Bajo mínimo</span><strong th:text="${bajas}">0</strong></div>
+      <div><span>Agotados</span><strong th:text="${agotadas}">0</strong></div>
+    </div>
+    <div class="inventario-table-wrap"><table class="inventario-table">
+      <thead><tr><th>Producto</th><th>Bodega</th><th class="number">Existencia</th><th class="number">Mínimo</th><th>Estado</th></tr></thead>
+      <tbody>
+      <tr th:each="f : ${filas}">
+        <td><strong th:text="${f.producto}">Producto</strong><small th:text="${f.codigo_interno + ' · ' + f.unidad_medida}">Código</small></td>
+        <td th:text="${f.bodega}">Bodega</td><td class="number" th:text="${f.cantidad_actual}">0</td>
+        <td class="number" th:text="${f.stock_minimo}">0</td>
+        <td><span class="stock-status" th:classappend="${f.estado == 'AGOTADO' ? 'stock-agotado' : (f.estado == 'BAJO' ? 'stock-bajo' : 'stock-ok')}" th:text="${f.estado == 'AGOTADO' ? 'Agotado' : (f.estado == 'BAJO' ? 'Bajo mínimo' : 'Disponible')}">Estado</span></td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(filas)}"><td colspan="5" class="inventario-empty">No hay registros que coincidan con los filtros seleccionados.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="inventario-nota">Los valores provienen de PostgreSQL. Esta pantalla no modifica existencias: las entradas, salidas y traslados utilizan sus procesos correspondientes.</p>
+  </section>
+  <div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+<script>
+(() => {
+  const form = document.getElementById('filtros-inventario');
+  let espera;
+  document.getElementById('buscar').addEventListener('input', () => {
+    clearTimeout(espera);
+    espera = setTimeout(() => form.requestSubmit(), 450);
+  });
+  for (const id of ['bodega','estado']) {
+    document.getElementById(id).addEventListener('change', () => form.requestSubmit());
+  }
+})();
+</script>
+</body></html>

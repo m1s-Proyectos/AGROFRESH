@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Traslado entre bodegas | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('traslados')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / OPERACIONES</div>
+            <section class="traslado-intro">
+                <div>
+                    <p class="date-label">CONTROL PRECISO, MOVIMIENTOS SEGUROS.</p>
+                    <h1>Traslado entre <em>bodegas.</em></h1>
+                    <p>Registra el movimiento interno de mercadería desde una bodega de origen hacia una bodega de destino, conservando el control de existencias y lotes.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">⇄</div>
+            </section>
+            <div class="traslado-layout">
+                <section class="traslado-panel" aria-labelledby="form-title">
+                    <div class="panel-topline">
+                        <div>
+                            <span class="section-kicker">NUEVA OPERACIÓN</span>
+                            <h2 id="form-title">Registrar traslado</h2>
+                        </div>
+                        <span class="operation-tag">Movimiento interno</span>
+                    </div>
+                    <form id="form-traslado" th:attr="data-permitido=${puedeConfirmar}">
+                        <p id="catalogo-estado" class="catalogo-estado" role="status">Cargando bodegas…</p>
+                        <h3 class="form-subtitle"><span>01</span> Origen y destino</h3>
+                        <div class="traslado-grid">
+                            <div class="traslado-field">
+                                <label for="origen">Bodega de origen</label>
+                                <select id="origen" name="origen" required disabled><option value="">Selecciona una bodega</option></select>
+                            </div>
+                            <div class="traslado-field">
+                                <label for="destino">Bodega de destino</label>
+                                <select id="destino" name="destino" required disabled><option value="">Selecciona una bodega</option></select>
+                            </div>
+                        </div>
+                        <h3 class="form-subtitle second"><span>02</span> Producto y cantidad</h3>
+                        <div class="traslado-grid">
+                            <div class="traslado-field">
+                                <label for="tipo">Tipo de producto</label>
+                                <select id="tipo" name="tipo" required disabled>
+                                    <option value="">Selecciona un tipo</option>
+                                    <option value="PERECEDERO">Perecedero</option>
+                                    <option value="NO_PERECEDERO">No perecedero</option>
+                                </select>
+                            </div>
+                            <div class="traslado-field">
+                                <label for="producto">Producto disponible en origen</label>
+                                <select id="producto" name="producto" required disabled><option value="">Selecciona primero bodega y tipo</option></select>
+                            </div>
+                            <div class="traslado-field wide" id="lote-field" hidden>
+                                <label for="lote">Lote disponible</label>
+                                <select id="lote" name="lote" disabled><option value="">Selecciona un lote</option></select>
+                                <small>Solo se muestran lotes no vencidos y con unidades disponibles.</small>
+                            </div>
+                            <div class="traslado-field wide">
+                                <label for="cantidad">Cantidad a trasladar</label>
+                                <input id="cantidad" name="cantidad" type="number" min="1" step="1" placeholder="Número de unidades" required disabled>
+                                <small id="disponible">Selecciona un producto para consultar existencias.</small>
+                            </div>
+                        </div>
+                        <div class="traslado-actions">
+                            <p>El traslado se registra en una sola operación en PostgreSQL, con el usuario de tu sesión.</p>
+                            <button id="confirmar" type="submit" disabled>Confirmar traslado <span aria-hidden="true">→</span></button>
+                        </div>
+                    </form>
+                </section>
+                <aside class="traslado-aside">
+                    <span class="section-kicker">CÓMO FUNCIONA</span>
+                    <h2>Un traslado,<br><em>dos bodegas.</em></h2>
+                    <div class="transfer-graphic" aria-hidden="true">
+                        <div><span>ORIGEN</span><strong>−</strong></div><span class="transfer-arrow">→</span><div><span>DESTINO</span><strong>+</strong></div>
+                    </div>
+                    <p>La operación descontará las unidades del origen y las agregará al destino como una sola transacción.</p>
+                    <div class="aside-divider"></div>
+                    <p class="aside-tip"><span>✳</span> Para productos perecederos también se conservará el control del lote.</p>
+                    <a class="return-link" th:href="@{/}">← Volver al Dashboard</a>
+                </aside>
+            </div>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script>
+(() => {
+    const el = id => document.getElementById(id);
+    const form = el('form-traslado');
+    const origen = el('origen'), destino = el('destino'), tipo = el('tipo');
+    const producto = el('producto'), lote = el('lote'), cantidad = el('cantidad');
+    const estado = el('catalogo-estado'), disponible = el('disponible');
+    const loteField = el('lote-field'), confirmar = el('confirmar');
+    const permitido = form.dataset.permitido === 'true';
+    let bodegas = [], productos = [], lotes = [], version = 0, enviando = false;
+    const show = (mensaje, clase = '') => {
+        estado.textContent = mensaje;
+        estado.className = 'catalogo-estado' + (clase ? ' catalogo-' + clase : '');
+    };
+    const fill = (select, rows, placeholder, label) => {
+        select.replaceChildren(new Option(placeholder, ''));
+        rows.forEach(row => select.add(new Option(label(row), String(row.id))));
+        select.disabled = rows.length === 0;
+    };
+    const selectedStock = () => tipo.value === 'PERECEDERO'
+        ? lotes.find(l => String(l.id) === lote.value)?.stock
+        : productos.find(p => String(p.id) === producto.value)?.stock;
+    function updateButton() {
+        const stock = Number(selectedStock());
+        const n = Number(cantidad.value);
+        confirmar.disabled = !permitido || enviando || !origen.value || !destino.value
+            || origen.value === destino.value || !producto.value
+            || (tipo.value === 'PERECEDERO' && !lote.value)
+            || !Number.isInteger(n) || n <= 0 || !Number.isFinite(stock) || n > stock;
+    }
+    const clearQuantity = () => {
+        cantidad.value = ''; cantidad.max = ''; cantidad.disabled = true;
+        disponible.textContent = 'Selecciona un producto para consultar existencias.';
+        updateButton();
+    };
+    const clearProduct = () => {
+        productos = []; lotes = [];
+        fill(producto, [], 'Selecciona primero bodega y tipo', () => '');
+        fill(lote, [], 'Selecciona un lote', () => '');
+        clearQuantity();
+    };
+    async function getJson(path) {
+        const response = await fetch(path, {headers:{'Accept':'application/json'}});
+        if (!response.ok) throw new Error(response.status === 503
+            ? 'La conexión a PostgreSQL no está configurada.'
+            : 'No se pudieron cargar los datos (' + response.status + ').');
+        return response.json();
+    }
+    async function loadProducts() {
+        const request = ++version;
+        clearProduct();
+        if (!origen.value || !tipo.value) return;
+        show('Consultando productos disponibles…');
+        try {
+            const rows = await getJson('/api/traslados/productos?origen=' + encodeURIComponent(origen.value)
+                + '&tipo=' + encodeURIComponent(tipo.value));
+            if (request !== version) return;
+            productos = rows;
+            fill(producto, rows, rows.length ? 'Selecciona un producto' : 'Sin productos con existencias',
+                r => r.nombre + ' · ' + r.codigo_interno + ' (' + r.stock + ' disponibles)');
+            show(rows.length ? 'Productos disponibles cargados.' : 'No hay productos de este tipo con existencias en esa bodega.');
+        } catch (e) { if (request === version) show(e.message, 'error'); }
+        updateButton();
+    }
+    async function loadLotes() {
+        const request = ++version;
+        lotes = [];
+        fill(lote, [], 'Selecciona un lote', () => '');
+        clearQuantity();
+        if (!producto.value) return;
+        if (tipo.value !== 'PERECEDERO') {
+            const item = productos.find(p => String(p.id) === producto.value);
+            if (item) {
+                cantidad.max = item.stock; cantidad.disabled = false;
+                disponible.textContent = 'Disponible en origen: ' + item.stock + ' unidades.';
+            }
+            updateButton();
+            return;
+        }
+        show('Consultando lotes vigentes…');
+        try {
+            const rows = await getJson('/api/traslados/lotes?origen=' + encodeURIComponent(origen.value)
+                + '&producto=' + encodeURIComponent(producto.value));
+            if (request !== version) return;
+            lotes = rows;
+            fill(lote, rows, rows.length ? 'Selecciona un lote' : 'No hay lotes vigentes',
+                r => 'Lote ' + r.id + ' · vence ' + r.vencimiento + ' · ' + r.stock + ' disponibles');
+            show(rows.length ? 'Lotes disponibles cargados.' : 'No hay lotes vigentes con existencias.');
+        } catch (e) { if (request === version) show(e.message, 'error'); }
+        updateButton();
+    }
+    function syncDestinos() {
+        const anterior = destino.value;
+        fill(destino, bodegas.filter(b => String(b.id) !== origen.value),
+            'Selecciona la bodega destino', b => b.nombre + ' — ' + b.ubicacion);
+        if (anterior !== origen.value && [...destino.options].some(o => o.value === anterior)) destino.value = anterior;
+        updateButton();
+    }
+    origen.addEventListener('change', () => { syncDestinos(); loadProducts(); });
+    destino.addEventListener('change', updateButton);
+    tipo.addEventListener('change', () => {
+        const perecedero = tipo.value === 'PERECEDERO';
+        loteField.hidden = !perecedero; lote.required = perecedero;
+        loadProducts();
+    });
+    producto.addEventListener('change', loadLotes);
+    cantidad.addEventListener('input', updateButton);
+    lote.addEventListener('change', () => {
+        clearQuantity();
+        const item = lotes.find(l => String(l.id) === lote.value);
+        if (item) {
+            cantidad.max = item.stock; cantidad.disabled = false;
+            disponible.textContent = 'Disponible en este lote: ' + item.stock + ' unidades.';
+        }
+        updateButton();
+    });
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        updateButton();
+        if (confirmar.disabled || enviando) return;
+        // Doble confirmación para evitar ejecutar una operación involuntaria.
+        if (!window.confirm('¿Confirmar el traslado de ' + cantidad.value + ' unidades entre las bodegas seleccionadas?')) return;
+        enviando = true; updateButton();
+        show('Registrando traslado en PostgreSQL…');
+        const data = {
+            origen: Number(origen.value), destino: Number(destino.value),
+            producto: Number(producto.value), tipo: tipo.value,
+            lote: tipo.value === 'PERECEDERO' ? Number(lote.value) : null,
+            cantidad: Number(cantidad.value)
+        };
+        try {
+            const headers = {'Content-Type':'application/json','Accept':'application/json'};
+            const csrf = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            if (csrf && csrfHeader) headers[csrfHeader.content] = csrf.content;
+            const response = await fetch('/api/traslados/confirmar', {
+                method: 'POST', headers, body: JSON.stringify(data)
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(body.mensaje || 'No se pudo realizar el traslado (' + response.status + ').');
+            await loadProducts(); // Se actualizan las existencias y se limpia la selección.
+            show(body.mensaje || 'Traslado registrado correctamente.', 'success');
+        } catch (error) { show(error.message, 'error'); }
+        finally { enviando = false; updateButton(); }
+    });
+    getJson('/api/traslados/bodegas').then(rows => {
+        bodegas = rows;
+        fill(origen, rows, 'Selecciona la bodega origen', b => b.nombre + ' — ' + b.ubicacion);
+        syncDestinos(); tipo.disabled = false;
+        show(rows.length ? 'Selecciona la bodega origen y el tipo de producto.' : 'No hay bodegas registradas.');
+        if (!permitido) show('Tienes acceso para consultar, pero no permiso para registrar traslados.');
+    }).catch(e => show(e.message + ' Comprueba tu conexión PostgreSQL.', 'error'));
+})();
+</script>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

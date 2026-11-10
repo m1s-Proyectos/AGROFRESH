@@ -6,13 +6,13 @@
     <meta name="theme-color" content="#163b2b">
     <title>Dashboard | AGROFRESH</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/css/agrofresh.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
 </head>
 <body>
 <div class="app-shell">
     <div th:replace="~{layout/header :: header}"></div>
     <div class="workspace">
-        <div th:replace="~{layout/sidebar :: sidebar}"></div>
+        <div th:replace="~{layout/sidebar :: sidebar('dashboard')}"></div>
         <main class="main-content">
             <div class="eyebrow"><span class="eyebrow-line"></span> SISTEMA DE INVENTARIO</div>
             <section class="welcome-section" aria-labelledby="welcome-title">
@@ -51,7 +51,7 @@
                         <div class="module-symbol symbol-ochre" aria-hidden="true">⌁</div>
                         <h3>Control de inventario</h3>
                         <p>Visibilidad clara de existencias, lotes y movimientos.</p>
-                        <span class="module-state">En preparación</span>
+                        <a class="module-action" th:if="${accesos['traslado']}" th:href="@{/traslados}">Ir a traslados <span aria-hidden="true">↗</span></a>
                     </article>
                     <article class="module-card">
                         <span class="card-index">03 — 08</span>

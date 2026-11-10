@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de lotes | AGROFRESH</title>
+<link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+<link rel="stylesheet" th:href="@{/css/traslados.css}">
+<link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv1')}">
+<link rel="stylesheet" th:href="@{/css/lotes.css(v='20261110lotes2')}">
+</head>
+<body><div class="app-shell">
+<div th:replace="~{layout/header :: header}"></div>
+<div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('lotes')}"></div>
+<main class="main-content traslado-main">
+  <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / LOTES</div>
+  <section class="traslado-intro"><div>
+    <p class="date-label">CONTROL DE VENCIMIENTOS Y EXISTENCIAS.</p>
+    <h1>Seguimiento de <em>lotes.</em></h1>
+    <p>Consulta los lotes por producto y bodega. Identifica cuáles vencen en los próximos siete días, están vencidos o ya no tienen existencias.</p>
+  </div><div class="traslado-emblem" aria-hidden="true">◷</div></section>
+  <section class="inventario-panel">
+    <div class="panel-topline"><div><span class="section-kicker">CONSULTA DE LOTES</span><h2>Vencimientos por bodega</h2></div><span class="operation-tag">Solo lectura</span></div>
+    <form id="filtros-lotes" class="inventario-filtros" method="get" th:action="@{/lotes}">
+      <div class="traslado-field"><label for="buscar">Buscar producto, código o lote</label>
+        <input id="buscar" type="search" name="buscar" th:value="${buscar}" placeholder="Ej.: leche, AGF-0001, 1001" autocomplete="off"></div>
+      <div class="traslado-field"><label for="bodega">Bodega</label>
+        <select id="bodega" name="bodega"><option value="">Todas las bodegas</option>
+          <option th:each="b : ${bodegas}" th:value="${b.id_bodega}" th:text="${b.nombre + ' — ' + b.ubicacion}" th:selected="${bodegaSeleccionada != null and b.id_bodega == bodegaSeleccionada}">Bodega</option>
+        </select></div>
+      <div class="traslado-field"><label for="estado">Estado del lote</label>
+        <select id="estado" name="estado">
+          <option value="todos" th:selected="${estadoSeleccionado == 'todos'}">Todos</option>
+          <option value="proximo" th:selected="${estadoSeleccionado == 'proximo'}">Próximos 7 días</option>
+          <option value="vencido" th:selected="${estadoSeleccionado == 'vencido'}">Vencidos (con stock)</option>
+          <option value="vigente" th:selected="${estadoSeleccionado == 'vigente'}">Vigentes (+7 días)</option>
+          <option value="sin_stock" th:selected="${estadoSeleccionado == 'sin_stock'}">Sin existencias</option>
+        </select></div>
+      <div class="inventario-filter-actions"><button type="submit">Buscar</button><a th:href="@{/lotes}">Limpiar</a></div>
+    </form>
+    <div class="inventario-resumen" aria-live="polite">
+      <div><span>Lotes encontrados</span><strong th:text="${totalFilas}">0</strong></div>
+      <div><span>Próximos 7 días</span><strong th:text="${proximos}">0</strong></div>
+      <div><span>Vencidos con stock</span><strong th:text="${vencidos}">0</strong></div>
+    </div>
+    <div class="inventario-table-wrap"><table class="inventario-table">
+      <thead><tr><th>Producto / lote</th><th>Bodega</th><th>Proveedor</th><th>Vencimiento</th><th class="number">Existencia</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr th:each="f : ${filas}">
+          <td><strong th:text="${f.producto}">Producto</strong><small th:text="${f.codigo_interno + ' · Lote ' + f.num_lote}">Código / lote</small></td>
+          <td th:text="${f.bodega}">Bodega</td><td th:text="${f.proveedor}">Proveedor</td>
+          <td><span th:text="${f.fecha_formateada}">Fecha</span>
+            <small th:if="${f.estado == 'PROXIMO'}" th:text="${f.dias_restantes == 1 ? 'Vence mañana' : 'Vence en ' + f.dias_restantes + ' días'}">Restante</small>
+            <small th:if="${f.estado == 'VENCIDO'}">No apto para despacho</small></td>
+          <td class="number" th:text="${f.cantidad_actual}">0</td>
+          <td><span class="stock-status" th:classappend="${f.estado == 'SIN_STOCK' ? 'stock-agotado' : (f.estado == 'VENCIDO' ? 'lote-vencido' : (f.estado == 'PROXIMO' ? 'stock-bajo' : 'stock-ok'))}"
+            th:text="${f.estado == 'SIN_STOCK' ? 'Sin existencias' : (f.estado == 'VENCIDO' ? 'Vencido' : (f.estado == 'PROXIMO' ? 'Próximo a vencer' : 'Vigente'))}">Estado</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(filas)}"><td colspan="6" class="inventario-empty">No hay lotes que coincidan con los filtros seleccionados.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="inventario-nota">Los plazos se calculan con la fecha actual de PostgreSQL. Los lotes vencidos o sin stock no son disponibles para despacho. Esta pantalla no modifica las existencias.</p>
+  </section>
+  <div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+<script>
+(() => {
+ const form=document.getElementById('filtros-lotes');
+ let espera;
+ document.getElementById('buscar').addEventListener('input',()=>{clearTimeout(espera);espera=setTimeout(()=>form.requestSubmit(),500);});
+ for(const id of ['bodega','estado']) document.getElementById(id).addEventListener('change',()=>form.requestSubmit());
+})();
+</script>
+</body></html>
