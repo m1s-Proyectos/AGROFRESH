@@ -1,0 +1,10 @@
+.recepcion-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(240px,.68fr);gap:18px;align-items:start}
+.recepcion-fields{margin-top:18px}.recepcion-add{display:flex;justify-content:flex-end;margin-top:17px}
+.recepcion-add button{border:1px solid #789274;background:#e8eee1;color:#2e5132;padding:10px 19px;border-radius:3px;font-size:11px;font-weight:700}
+.recepcion-add button:disabled{opacity:.5;cursor:not-allowed}.recepcion-table-wrap{overflow-x:auto}
+.recepcion-table{width:100%;font-size:11px;border-collapse:collapse}.recepcion-table th{color:#536a52;text-align:left;font-size:10px;white-space:nowrap;border-bottom:1px solid #dce2d8;padding:12px 8px}
+.recepcion-table td{border-bottom:1px solid #ecede8;padding:14px 8px;vertical-align:middle}.recepcion-table td small{display:block;color:#829082;font-size:10px;margin-top:4px}
+.recepcion-table .muted-row{text-align:center;color:#829082;padding:23px}.recepcion-table .remove{border:0;background:#f4e9e2;color:#8e4d3c;padding:5px 9px;border-radius:3px}
+.recepcion-total{display:flex;justify-content:space-between;align-items:center;margin-top:19px;padding:16px;background:#edf2e7;color:#47634a;font-size:12px}
+.recepcion-total strong{font:25px Georgia,serif;color:#22492f}.traslado-field[hidden]{display:none}
+@media(max-width:1080px){.recepcion-layout{grid-template-columns:1fr}}

@@ -1,0 +1,4 @@
+.lote-vencido {background:#f9e0dc;color:#9e483d;}
+.inventario-table td {vertical-align:middle;}
+.inventario-table td small {line-height:1.45;}
+@media(max-width:920px){.inventario-table{min-width:800px;}}

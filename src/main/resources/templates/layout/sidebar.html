@@ -1,18 +1,19 @@
-<aside class="sidebar" th:fragment="sidebar">
+<aside class="sidebar" th:fragment="sidebar(activePage)">
     <div class="sidebar-heading">GESTIÓN</div>
     <nav aria-label="Navegación principal">
-        <a class="nav-item active" th:href="@{/}" aria-current="page">
+        <a class="nav-item" th:classappend="${activePage == 'dashboard'} ? 'active' : ''" th:href="@{/}" th:attr="aria-current=${activePage == 'dashboard'} ? 'page' : null">
             <span class="nav-icon" aria-hidden="true">⌂</span><span>Dashboard</span>
         </a>
         <div class="sidebar-heading section-heading">MÓDULOS</div>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">♙</span><span>Usuarios</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">◈</span><span>Productos</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">⌑</span><span>Proveedores</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">▤</span><span>Inventario</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">⇄</span><span>Compras</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">◷</span><span>Lotes</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">↗</span><span>Movimientos</span><span class="nav-pending">Pendiente</span></a>
-        <a class="nav-item disabled" href="#" aria-disabled="true" tabindex="-1"><span class="nav-icon" aria-hidden="true">▥</span><span>Reportes</span><span class="nav-pending">Pendiente</span></a>
+        <a class="nav-item" th:if="${accesos['usuario']}" th:href="@{/usuarios}" th:classappend="${activePage == 'usuarios'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Usuarios</span></a>
+        <a class="nav-item" th:if="${accesos['producto']}" th:href="@{/productos}" th:classappend="${activePage == 'productos'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Productos</span><span class="nav-pending">Pendiente</span></a>
+        <a class="nav-item" th:if="${accesos['proveedor']}" th:href="@{/proveedores}" th:classappend="${activePage == 'proveedores'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Proveedores</span><span class="nav-pending">Pendiente</span></a>
+        <a class="nav-item" th:if="${accesos['inventario']}" th:href="@{/inventario}" th:classappend="${activePage == 'inventario'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Inventario</span></a>
+        <a th:if="${accesos['traslado']}" class="nav-item" th:href="@{/traslados}" th:classappend="${activePage == 'traslados'} ? 'active' : ''" th:attr="aria-current=${activePage == 'traslados'} ? 'page' : null"><span class="nav-icon" aria-hidden="true">↔</span><span>Traslados</span></a>
+        <a class="nav-item" th:if="${accesos['compra']}" th:href="@{/compras}" th:classappend="${activePage == 'compras'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Recepción / Compras</span></a>
+        <a class="nav-item" th:if="${accesos['lote']}" th:href="@{/lotes}" th:classappend="${activePage == 'lotes'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Lotes</span></a>
+        <a class="nav-item" th:if="${accesos['movimiento']}" th:href="@{/movimientos}" th:classappend="${activePage == 'movimientos'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Movimientos</span><span class="nav-pending">Pendiente</span></a>
+        <a class="nav-item" th:if="${accesos['reporte']}" th:href="@{/reportes}" th:classappend="${activePage == 'reportes'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Reportes</span><span class="nav-pending">Pendiente</span></a>
     </nav>
     <div class="sidebar-note">
         <span class="leaf-mark" aria-hidden="true">✳</span>
