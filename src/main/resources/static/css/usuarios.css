@@ -1,1 +1,37 @@
 .usuarios-intro{margin:35px 0 25px}.usuarios-intro h1{font:400 clamp(32px,3.5vw,45px) Georgia,serif;color:#183d2d;margin:6px 0 12px}.usuarios-intro h1 em{color:#688e61}.usuarios-intro>p:last-child{color:#627365;font-size:13px;line-height:1.7}.usuarios-panel{background:#fffefa;border:1px solid #e2e5d9;margin-top:26px;padding:25px}.usuarios-panel-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;margin-bottom:23px}.usuarios-panel-header h2{font:400 25px Georgia,serif;margin:7px 0;color:#183d2d}.usuarios-buscar{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#4e6b56}.usuarios-buscar input{padding:11px 13px;min-width:230px;border:1px solid #d6dfd0;background:#fbfcf9;border-radius:3px;font:13px 'Trebuchet MS',sans-serif}.usuarios-scroll{overflow-x:auto}.usuarios-tabla{width:100%;border-collapse:collapse;font:12px 'Trebuchet MS',sans-serif;color:#253d2b}.usuarios-tabla th{text-align:left;font-size:10px;letter-spacing:.08em;color:#6b806e;border-bottom:1px solid #d9e0d4;padding:13px 11px}.usuarios-tabla td{border-bottom:1px solid #ecede6;padding:15px 11px;vertical-align:middle}.usuarios-tabla td strong{display:block;font-weight:700}.usuarios-tabla td small{display:block;margin-top:5px;color:#778879}.estado{display:inline-block;border-radius:14px;padding:5px 10px;font-size:10px;font-weight:700}.estado-activo{background:#e7f2e6;color:#26623c}.estado-inactivo{background:#f3e9e7;color:#9c5143}.estado-bloqueado{background:#fff0d5;color:#8d6020}.usuarios-acciones{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.usuarios-acciones form{margin:0}.usuarios-acciones button{border:1px solid #c6d7c4;border-radius:3px;background:#f8faf5;color:#28513b;padding:8px 10px;cursor:pointer;font:600 11px 'Trebuchet MS',sans-serif}.usuarios-acciones button:hover{background:#e9f1e8}.usuarios-acciones .btn-baja{border-color:#ead1cb;color:#a24c40;background:#fff8f6}.usuarios-acciones .btn-reactivar{background:#e7f2e5}.usuarios-aviso{padding:12px 15px;font-size:12px;margin:10px 0}.usuarios-aviso.exito{background:#e3f0de;color:#295c35}.usuarios-aviso.error{background:#fbe5e1;color:#8c392b}.usuarios-nota{font-size:12px;color:#687a6c;line-height:1.7}.usuarios-sin-accion{color:#94a69a}#sinResultados{padding:22px;color:#6b806e}tr[hidden]{display:none}@media(max-width:680px){.usuarios-panel{padding:14px}.usuarios-buscar{width:100%}.usuarios-buscar input{width:100%;min-width:0}}
+/* Alta y edición de cuentas: botones y diálogos independientes del menú de perfil. */
+.usuarios-herramientas{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.usuarios-nuevo,.modal-guardar{border:1px solid #183f2c;background:#163d2c;color:#fff;padding:12px 16px;border-radius:5px;font:600 12px 'Trebuchet MS',sans-serif;cursor:pointer}
+.usuarios-nuevo:hover,.modal-guardar:hover{background:#2d6548}
+.usuarios-acciones .usuarios-editar{background:#eaf2e6;color:#245b39;border:1px solid #c6d7c4}
+.usuarios-modal{width:min(560px,calc(100vw - 28px));max-height:min(92vh,850px);padding:0;border:1px solid #d9e2d4;border-radius:14px;background:#fffefa;color:#173d2b;box-shadow:0 24px 80px #071b1280;overflow-y:auto}
+.usuarios-modal::backdrop{background:rgba(8,29,19,.68);backdrop-filter:blur(3px)}
+.usuarios-form{padding:28px}
+.modal-cabecera{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding-bottom:19px;border-bottom:1px solid #e1e8dd;margin-bottom:20px}
+.modal-cabecera h2{font:400 30px Georgia,serif;margin:5px 0 9px;color:#173d2b}
+.modal-cabecera p:not(.section-kicker){font-size:12px;color:#728273;margin:0;line-height:1.5}
+.modal-cerrar{width:32px;height:32px;flex-shrink:0;border:none;border-radius:50%;background:#edf2e9;color:#365f43;cursor:pointer;font-size:22px}
+.usuarios-campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.usuarios-campos label{display:flex;flex-direction:column;gap:7px;font:600 12px 'Trebuchet MS',sans-serif;color:#355741;min-width:0}
+.usuarios-campos input,.usuarios-campos select{min-height:43px;width:100%;box-sizing:border-box;border:1px solid #d3ded1;border-radius:5px;background:#fbfcf9;padding:10px 12px;color:#193c2a;font:13px 'Trebuchet MS',sans-serif}
+.usuarios-campos input:focus,.usuarios-campos select:focus{outline:2px solid #9ebc98;outline-offset:1px}
+.usuarios-campos .ayuda-campo{font-size:10px;color:#79887b;font-weight:400;line-height:1.5}
+.usuarios-campos .campo-ancho{grid-column:1/-1}
+.modal-acciones{display:flex;justify-content:flex-end;gap:10px;padding-top:24px;margin-top:22px;border-top:1px solid #e1e8dd}
+.modal-cancelar{border:1px solid #d3ded1;background:transparent;color:#355741;padding:12px 16px;border-radius:5px;cursor:pointer;font-weight:600}
+@media(max-width:580px){.usuarios-form{padding:18px}.usuarios-campos{grid-template-columns:1fr}.usuarios-campos .campo-ancho{grid-column:auto}.usuarios-herramientas{width:100%}}
+
+/* Retroalimentación inmediata sin perder los datos del formulario. */
+.modal-error{margin:0 0 17px;padding:12px 14px;border:1px solid #ebc5c0;border-radius:5px;background:#fff2ef;color:#923c32;font-size:12px;line-height:1.6}
+.clave-entrada{display:flex;align-items:stretch;position:relative}
+.usuarios-campos .clave-entrada input{padding-right:90px}
+.clave-ver{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 9px;border:0;background:#eaf0e6;border-radius:4px;color:#315c41;font-size:11px;font-weight:700;cursor:pointer}
+.usuarios-campos .clave-estado{font:400 11px 'Trebuchet MS',sans-serif;color:#718475;line-height:1.5}
+.usuarios-campos .clave-invalida{color:#a43c32}
+.usuarios-campos .clave-valida{color:#267241}
+.usuarios-campos input:invalid:not(:placeholder-shown){border-color:#c9847c}
+
+/* Validaciones de nombre, apellido, username y correo en ambas ventanas. */
+.usuarios-campos .campo-estado{font:400 11px 'Trebuchet MS',sans-serif;line-height:1.45;min-height:0}
+.usuarios-campos .campo-invalido{color:#a43c32}
+.usuarios-campos input[aria-invalid="true"]{border-color:#c9847c}

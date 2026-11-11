@@ -14,7 +14,7 @@ public class ModuloController {
     private final JdbcTemplate jdbc;
     public ModuloController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    @GetMapping({"/movimientos", "/reportes"})
+    @GetMapping("/movimientos")
     public String pendiente(jakarta.servlet.http.HttpServletRequest request, Model model) {
         String modulo = request.getRequestURI().substring(1);
         model.addAttribute("modulo", modulo);
