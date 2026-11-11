@@ -2,8 +2,19 @@ package com.agrofresh.controller;
 
 import com.agrofresh.dto.CategoriaDto;
 import com.agrofresh.dto.CategoriaForm;
+import com.agrofresh.dto.ClasificacionProducto;
+import com.agrofresh.dto.ProductoDetalleDto;
+import com.agrofresh.dto.ProductoForm;
+import com.agrofresh.dto.ProductoListadoDto;
+import com.agrofresh.dto.ProveedorDetalleDto;
+import com.agrofresh.dto.ProveedorForm;
+import com.agrofresh.dto.ProveedorListadoDto;
 import com.agrofresh.security.PermisoService;
 import com.agrofresh.service.CategoriaService;
+import com.agrofresh.service.ProductoService;
+import com.agrofresh.service.ProveedorService;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +53,12 @@ class ModuleViewsTest {
     @MockBean
     private CategoriaService categoriaService;
 
+    @MockBean
+    private ProductoService productoService;
+
+    @MockBean
+    private ProveedorService proveedorService;
+
     @BeforeEach
     void provideIsolatedReadFixtures() {
         when(permisos.cuentaHabilitada(any())).thenReturn(true);
@@ -54,6 +71,38 @@ class ModuleViewsTest {
                 .thenReturn(new CategoriaDto(7, "Lácteos", null));
         when(categoriaService.actualizar(any(Integer.class), any(CategoriaForm.class)))
                 .thenReturn(new CategoriaDto(7, "Lácteos", "Refrigerados"));
+        when(productoService.listar()).thenReturn(List.of(
+                new ProductoListadoDto(3, "P-01", "Mango", 7, "Lácteos", "Kilogramo", ClasificacionProducto.PERECEDERO)));
+        when(productoService.consultar(3)).thenReturn(new ProductoDetalleDto(
+                3, "P-01", "Mango", 7, "Lácteos", "Kilogramo", ClasificacionProducto.PERECEDERO,
+                new BigDecimal("8.50"), 12, null, null));
+        when(productoService.categoriasDisponibles()).thenReturn(List.of(new CategoriaDto(7, "Lácteos", null)));
+        when(productoService.unidadesDisponibles()).thenReturn(List.of("Unidad", "Kilogramo"));
+        when(productoService.registrar(any(ProductoForm.class)))
+                .thenReturn(new ProductoDetalleDto(
+                        3, "P-01", "Mango", 7, "Lácteos", "Kilogramo", ClasificacionProducto.PERECEDERO,
+                        new BigDecimal("8.50"), 12, null, null));
+        when(productoService.actualizar(any(Integer.class), any(ProductoForm.class)))
+                .thenReturn(new ProductoDetalleDto(
+                        3, "P-01", "Mango", 7, "Lácteos", "Kilogramo", ClasificacionProducto.PERECEDERO,
+                        new BigDecimal("8.50"), 12, null, null));
+        when(proveedorService.listar()).thenReturn(List.of(
+                new ProveedorListadoDto(5, "Agro Distribución", null, "0614-000000-000-0",
+                        "contacto@agro.test", "71234567", "Gravado")));
+        when(proveedorService.buscar(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of(
+                new ProveedorListadoDto(5, "Agro Distribución", null, "0614-000000-000-0",
+                        "contacto@agro.test", "71234567", "Gravado")));
+        when(proveedorService.consultar(5)).thenReturn(new ProveedorDetalleDto(
+                5, "Agro Distribución", null, "0614-000000-000-0",
+                "contacto@agro.test", "Km 10 carretera norte", "71234567", "Gravado"));
+        when(proveedorService.registrar(any(ProveedorForm.class)))
+                .thenReturn(new ProveedorDetalleDto(
+                        5, "Agro Distribución", null, "0614-000000-000-0",
+                        "contacto@agro.test", "Km 10 carretera norte", "71234567", "Gravado"));
+        when(proveedorService.actualizar(any(Integer.class), any(ProveedorForm.class)))
+                .thenReturn(new ProveedorDetalleDto(
+                        5, "Agro Distribución", null, "0614-000000-000-0",
+                        "contacto@agro.test", "Km 10 carretera norte", "71234567", "Gravado"));
     }
 
     @Test
@@ -150,13 +199,20 @@ class ModuleViewsTest {
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                         .string(org.hamcrest.Matchers.containsString("_csrf")));
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+        org.springframework.test.web.servlet.MvcResult createResult = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .post("/categorias/guardar")
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
                         .param("nombre", "Lácteos"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
-                        "/categorias/consultar/7"));
+                        "/categorias/consultar/7"))
+                .andReturn();
+        mockMvc.perform(get("/categorias/consultar/7").flashAttrs(createResult.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("categoria-detalle"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Categoría registrada correctamente.")));
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .post("/categorias/actualizar/7")
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
@@ -165,6 +221,179 @@ class ModuleViewsTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
                         "/categorias/consultar/7"));
+    }
+
+    @Test
+    void rendersProductListCreateEditAndDetailViews() throws Exception {
+        mockMvc.perform(get("/productos"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("productos"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Mango")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Registrar producto")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(
+                                "Productos</span><span class=\"nav-pending\">Pendiente</span>"))));
+        mockMvc.perform(get("/productos/nueva"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("producto-form"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("clasificacion")));
+        mockMvc.perform(get("/productos/editar/3"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("producto-form"));
+        mockMvc.perform(get("/productos/consultar/3"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("producto-detalle"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("P-01")));
+    }
+
+    @Test
+    void productFormPostsWithCsrfToExistingRoutes() throws Exception {
+        mockMvc.perform(get("/productos/nueva"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("_csrf")));
+        MvcResult create = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .post("/productos/guardar")
+                                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                                .param("codigoInterno", "P-01")
+                                .param("nombre", "Mango")
+                                .param("idCategoria", "7")
+                                .param("unidadMedida", "Kilogramo")
+                                .param("clasificacion", "PERECEDERO")
+                                .param("temperaturaRecomendada", "8.5")
+                                .param("vidaUtil", "12"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
+                        "/productos/consultar/3"))
+                .andReturn();
+        mockMvc.perform(get("/productos/consultar/3").flashAttrs(create.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("producto-detalle"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Producto registrado correctamente.")));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void hidesProductWriteActionsWhenInsertAndUpdatePermissionsAreMissing() throws Exception {
+        when(permisos.puede(any(), org.mockito.ArgumentMatchers.eq("producto"),
+                org.mockito.ArgumentMatchers.eq("INSERT"))).thenReturn(false);
+        when(permisos.puede(any(), org.mockito.ArgumentMatchers.eq("producto"),
+                org.mockito.ArgumentMatchers.eq("UPDATE"))).thenReturn(false);
+
+        mockMvc.perform(get("/productos"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Registrar producto"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Editar"))));
+    }
+
+    @Test
+    void rendersSupplierListCreateEditAndDetailViews() throws Exception {
+        mockMvc.perform(get("/proveedores"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedores"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Agro Distribución")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Registrar proveedor")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("name=\"q\"")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(
+                                "Proveedores</span><span class=\"nav-pending\">Pendiente</span>"))));
+        mockMvc.perform(get("/proveedores").param("q", "Agro"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedores"));
+        mockMvc.perform(get("/proveedores/nueva"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedor-form"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("correoElectronico")));
+        mockMvc.perform(get("/proveedores/editar/5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedor-form"));
+        mockMvc.perform(get("/proveedores/consultar/5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedor-detalle"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("0614-000000-000-0")));
+    }
+
+    @Test
+    void supplierFormPostsWithCsrfToExistingRoutes() throws Exception {
+        mockMvc.perform(get("/proveedores/nueva"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("_csrf")));
+        MvcResult create = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .post("/proveedores/guardar")
+                                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                                .param("nombre", "Agro Distribución")
+                                .param("nit", "0614-000000-000-0")
+                                .param("correoElectronico", "contacto@agro.test")
+                                .param("direccion", "Km 10 carretera norte")
+                                .param("telefono", "71234567")
+                                .param("iva", "Gravado"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
+                        "/proveedores/consultar/5"))
+                .andReturn();
+        mockMvc.perform(get("/proveedores/consultar/5").flashAttrs(create.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedor-detalle"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Proveedor registrado correctamente.")));
+    }
+
+    @Test
+    void displaysServerValidationErrorBesideTheSupplierName() throws Exception {
+        when(proveedorService.registrar(any(ProveedorForm.class)))
+                .thenThrow(new com.agrofresh.exception.BusinessException(
+                        "El nombre del proveedor es obligatorio."));
+        MvcResult result = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post("/proveedores/guardar")
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                        .param("nombre", "   ")
+                        .param("nit", "0614-000000-000-0")
+                        .param("correoElectronico", "contacto@agro.test")
+                        .param("direccion", "Dir")
+                        .param("telefono", "71234567")
+                        .param("iva", "Gravado"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .redirectedUrl("/proveedores/nueva"))
+                .andReturn();
+
+        mockMvc.perform(get("/proveedores/nueva").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedor-form"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("El nombre del proveedor es obligatorio.")));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void hidesSupplierWriteActionsWhenInsertAndUpdatePermissionsAreMissing() throws Exception {
+        when(permisos.puede(any(), org.mockito.ArgumentMatchers.eq("proveedor"),
+                org.mockito.ArgumentMatchers.eq("INSERT"))).thenReturn(false);
+        when(permisos.puede(any(), org.mockito.ArgumentMatchers.eq("proveedor"),
+                org.mockito.ArgumentMatchers.eq("UPDATE"))).thenReturn(false);
+
+        mockMvc.perform(get("/proveedores"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("proveedores"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Registrar proveedor"))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Editar"))));
     }
 
     @Test

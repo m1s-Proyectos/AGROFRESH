@@ -4,6 +4,8 @@ import com.agrofresh.dto.CategoriaDto;
 import com.agrofresh.dto.CategoriaForm;
 import com.agrofresh.security.PermisoService;
 import com.agrofresh.service.CategoriaService;
+import com.agrofresh.service.ProductoService;
+import com.agrofresh.service.ProveedorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,6 +43,12 @@ class HomePageTest {
 
     @MockBean
     private CategoriaService categoriaService;
+
+    @MockBean
+    private ProductoService productoService;
+
+    @MockBean
+    private ProveedorService proveedorService;
 
     @Test
     void loginPageIsPublic() throws Exception {
@@ -143,5 +151,67 @@ class HomePageTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .redirectedUrl("/categorias/consultar/7"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void productListRequiresAccessAndSelectPermissions() throws Exception {
+        when(permisos.puede(any(), eq("producto"), eq("ACCEDER"))).thenReturn(true);
+        when(permisos.puede(any(), eq("producto"), eq("SELECT"))).thenReturn(false);
+
+        mockMvc.perform(get("/productos"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void productCreationAndUpdateRequireTheirSpecificPermissions() throws Exception {
+        when(permisos.puede(any(), eq("producto"), eq("INSERT"))).thenReturn(false);
+        when(permisos.puede(any(), eq("producto"), eq("UPDATE"))).thenReturn(false);
+
+        mockMvc.perform(get("/productos/nueva"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/productos/actualizar/5").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void productPostRequiresCsrf() throws Exception {
+        when(permisos.puede(any(), eq("producto"), eq("INSERT"))).thenReturn(true);
+
+        mockMvc.perform(post("/productos/guardar"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void supplierListRequiresSelectPermission() throws Exception {
+        when(permisos.puede(any(), eq("proveedor"), eq("ACCEDER"))).thenReturn(true);
+        when(permisos.puede(any(), eq("proveedor"), eq("SELECT"))).thenReturn(false);
+
+        mockMvc.perform(get("/proveedores"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void supplierWriteRoutesRequireInsertAndUpdate() throws Exception {
+        when(permisos.puede(any(), eq("proveedor"), eq("INSERT"))).thenReturn(false);
+        when(permisos.puede(any(), eq("proveedor"), eq("UPDATE"))).thenReturn(false);
+
+        mockMvc.perform(get("/proveedores/nueva"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/proveedores/actualizar/2").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void supplierPostRequiresCsrf() throws Exception {
+        when(permisos.puede(any(), eq("proveedor"), eq("INSERT"))).thenReturn(true);
+
+        mockMvc.perform(post("/proveedores/guardar"))
+                .andExpect(status().isForbidden());
     }
 }

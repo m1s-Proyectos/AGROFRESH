@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Proveedores | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv1')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('proveedores')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> COMPRAS / PROVEEDORES</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">ALIADOS DE LA CADENA DE ABASTO.</p>
+                    <h1>Gestión de <em>proveedores.</em></h1>
+                    <p>Consulta y administra los datos de contacto e identificación tributaria de cada proveedor.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="inventario-panel categorias-panel" aria-labelledby="proveedores-title">
+                <div class="panel-topline categorias-panel-heading">
+                    <div>
+                        <span class="section-kicker">CATÁLOGO</span>
+                        <h2 id="proveedores-title">Proveedores registrados</h2>
+                    </div>
+                    <div class="categorias-toolbar">
+                        <form class="categoria-search" th:action="@{/proveedores}" method="get" role="search">
+                            <label for="buscarProveedores">
+                                <span>Buscar por nombre, NIT o DUI</span>
+                                <input id="buscarProveedores" name="q" type="search"
+                                       th:value="${terminoBusqueda}"
+                                       placeholder="Ej.: Agro o 0614-..." autocomplete="off">
+                            </label>
+                            <button type="submit" class="categoria-secondary-action">Buscar</button>
+                        </form>
+                        <a class="categoria-primary-action" th:if="${puedeRegistrar}" th:href="@{/proveedores/nueva}">
+                            <span aria-hidden="true">＋</span> Registrar proveedor
+                        </a>
+                    </div>
+                </div>
+
+                <div class="inventario-table-wrap categorias-table-wrap">
+                    <table class="inventario-table categorias-table">
+                        <caption class="visually-hidden">Proveedores del catálogo</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">NIT</th>
+                            <th scope="col">DUI</th>
+                            <th scope="col">Correo</th>
+                            <th scope="col">Teléfono</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${proveedores}">
+                            <td><strong th:text="${p.nombre}">Proveedor</strong></td>
+                            <td th:text="${p.nit}">0614-000000-000-0</td>
+                            <td th:text="${#strings.isEmpty(p.dui) ? '—' : p.dui}">—</td>
+                            <td th:text="${p.correoElectronico}">correo@ejemplo.com</td>
+                            <td th:text="${p.telefono}">71111111</td>
+                            <td>
+                                <div class="categoria-row-actions">
+                                    <a class="categoria-secondary-action"
+                                       th:href="@{/proveedores/consultar/{id}(id=${p.idProveedor})}">Consultar</a>
+                                    <a class="categoria-secondary-action categoria-edit-action"
+                                       th:if="${puedeEditar}"
+                                       th:href="@{/proveedores/editar/{id}(id=${p.idProveedor})}">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p class="inventario-empty categorias-empty"
+                       th:if="${#lists.isEmpty(proveedores) and #strings.isEmpty(terminoBusqueda)}">
+                        Todavía no hay proveedores registrados.
+                    </p>
+                    <p class="inventario-empty categorias-empty"
+                       th:if="${#lists.isEmpty(proveedores) and !#strings.isEmpty(terminoBusqueda)}">
+                        No se encontraron proveedores con ese criterio.
+                    </p>
+                </div>
+                <p class="inventario-nota">Los proveedores se utilizan en compras, catálogos y lotes; esta pantalla no modifica inventario.</p>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
