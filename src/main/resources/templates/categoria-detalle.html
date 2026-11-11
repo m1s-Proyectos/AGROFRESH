@@ -25,6 +25,9 @@
                 <div class="traslado-emblem" aria-hidden="true">◈</div>
             </section>
 
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
             <section class="categoria-detail-panel" aria-labelledby="categoria-detail-title">
                 <div class="panel-topline">
                     <div>

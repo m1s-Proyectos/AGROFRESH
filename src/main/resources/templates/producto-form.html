@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title th:text="${idProducto == null ? 'Nuevo producto' : 'Editar producto'} + ' | AGROFRESH'">Producto | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('productos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> CATÁLOGO / PRODUCTOS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label" th:text="${idProducto == null ? 'ALTA DE PRODUCTO' : 'ACTUALIZA LA FICHA DEL CATÁLOGO'}">PRODUCTO</p>
+                    <h1 th:text="${idProducto == null ? 'Registrar producto.' : 'Editar producto.'}">Producto</h1>
+                    <p>Completa los datos generales y la clasificación correspondiente.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="categoria-form-panel" aria-labelledby="producto-form-title">
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker" th:text="${idProducto == null ? 'ALTA DE CATÁLOGO' : 'EDICIÓN DE CATÁLOGO'}">PRODUCTO</span>
+                        <h2 id="producto-form-title" th:text="${idProducto == null ? 'Datos del producto' : 'Editar datos'}">Datos</h2>
+                    </div>
+                    <span class="operation-tag" th:if="${idProducto != null}" th:text="${'ID ' + idProducto}">ID</span>
+                </div>
+
+                <p class="categoria-field-hint" th:if="${#lists.isEmpty(categorias)}" role="alert">
+                    Debe existir al menos una categoría antes de registrar un producto.
+                </p>
+
+                <form th:object="${productoForm}"
+                      th:action="${idProducto == null} ? @{/productos/guardar} : @{/productos/actualizar/{id}(id=${idProducto})}"
+                      method="post" novalidate id="productoForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="categoria-form-grid">
+                        <div class="categoria-field">
+                            <label for="codigoInterno">Código interno <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="codigoInterno" th:field="*{codigoInterno}" type="text" maxlength="20" autocomplete="off"
+                                   placeholder="Ej.: P-01"
+                                   th:classappend="${error != null and #strings.contains(error, 'código')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 20 caracteres. Debe ser único en el catálogo.</small>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="nombre">Nombre <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="nombre" th:field="*{nombre}" type="text" maxlength="150" autocomplete="off"
+                                   placeholder="Ej.: Mango"
+                                   th:classappend="${error != null and #strings.contains(error, 'nombre')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 150 caracteres.</small>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="idCategoria">Categoría <span class="required-mark" aria-hidden="true">*</span></label>
+                            <select id="idCategoria" th:field="*{idCategoria}"
+                                    th:disabled="${#lists.isEmpty(categorias)}"
+                                    th:classappend="${error != null and #strings.contains(error, 'categoría')} ? 'is-invalid' : ''">
+                                <option value="">Selecciona una categoría</option>
+                                <option th:each="c : ${categorias}" th:value="${c.idCategoria()}" th:text="${c.nombre()}">Frutas</option>
+                            </select>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="unidadMedida">Unidad de medida <span class="required-mark" aria-hidden="true">*</span></label>
+                            <select id="unidadMedida" th:field="*{unidadMedida}"
+                                    th:classappend="${error != null and #strings.contains(error, 'unidad')} ? 'is-invalid' : ''">
+                                <option value="">Selecciona una unidad</option>
+                                <option th:each="u : ${unidades}" th:value="${u}" th:text="${u}">Unidad</option>
+                            </select>
+                            <small class="categoria-field-hint" th:if="${unidadEsHistorica}">
+                                La unidad actual no está en el catálogo vigente. Puedes conservarla o elegir una opción válida.
+                            </small>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="clasificacion">Clasificación <span class="required-mark" aria-hidden="true">*</span></label>
+                            <select id="clasificacion" th:field="*{clasificacion}"
+                                    th:classappend="${error != null and #strings.contains(error, 'clasificación')} ? 'is-invalid' : ''">
+                                <option value="" th:if="${productoForm.clasificacion == null}">Selecciona una clasificación</option>
+                                <option th:value="${T(com.agrofresh.dto.ClasificacionProducto).PERECEDERO}">Perecedero</option>
+                                <option th:value="${T(com.agrofresh.dto.ClasificacionProducto).NO_PERECEDERO}">No perecedero</option>
+                            </select>
+                            <small class="categoria-field-hint" th:if="${error != null and #strings.contains(error, 'clasificación')}">
+                                Si el mensaje menciona lotes, movimientos o historial, no podrás cambiar la clasificación hasta resolver esas dependencias.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="categoria-form-grid" id="camposPerecedero" hidden>
+                        <div class="categoria-field">
+                            <label for="temperaturaRecomendada">Temperatura recomendada (°C) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="temperaturaRecomendada" th:field="*{temperaturaRecomendada}" type="number" step="0.01" inputmode="decimal"
+                                   placeholder="Ej.: 8.5">
+                        </div>
+                        <div class="categoria-field">
+                            <label for="vidaUtil">Vida útil (días) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="vidaUtil" th:field="*{vidaUtil}" type="number" min="1" step="1" inputmode="numeric"
+                                   placeholder="Ej.: 12">
+                        </div>
+                    </div>
+
+                    <div class="categoria-form-grid" id="camposNoPerecedero" hidden>
+                        <div class="categoria-field">
+                            <label for="fechaFabricacion">Fecha de fabricación <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="fechaFabricacion" th:field="*{fechaFabricacion}" type="date">
+                        </div>
+                        <div class="categoria-field">
+                            <label for="vidaUtilAnaquel">Vida útil en anaquel (días) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="vidaUtilAnaquel" th:field="*{vidaUtilAnaquel}" type="number" min="1" step="1" inputmode="numeric"
+                                   placeholder="Ej.: 365">
+                        </div>
+                    </div>
+
+                    <div class="categoria-form-actions">
+                        <a class="categoria-secondary-action" th:href="@{/productos}">Cancelar</a>
+                        <button class="categoria-primary-action" type="submit" th:disabled="${#lists.isEmpty(categorias)}"
+                                th:text="${idProducto == null ? 'Registrar producto' : 'Guardar cambios'}">Guardar</button>
+                    </div>
+                </form>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script>
+(() => {
+    const clasificacion = document.getElementById('clasificacion');
+    const perecedero = document.getElementById('camposPerecedero');
+    const noPerecedero = document.getElementById('camposNoPerecedero');
+    if (!clasificacion || !perecedero || !noPerecedero) return;
+
+    function syncClasificacion() {
+        const value = clasificacion.value;
+        const esP = value === 'PERECEDERO';
+        const esNp = value === 'NO_PERECEDERO';
+        perecedero.hidden = !esP;
+        noPerecedero.hidden = !esNp;
+    }
+    clasificacion.addEventListener('change', syncClasificacion);
+    syncClasificacion();
+})();
+</script>
+</body>
+</html>

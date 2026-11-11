@@ -8,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.agrofresh.service.CategoriaService;
+import com.agrofresh.service.ProductoService;
+import com.agrofresh.service.ProveedorService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,6 +50,12 @@ class SecurityLoginTest {
 
     @MockBean
     private CategoriaService categoriaService;
+
+    @MockBean
+    private ProductoService productoService;
+
+    @MockBean
+    private ProveedorService proveedorService;
 
     @BeforeEach
     void provideIsolatedUser() {

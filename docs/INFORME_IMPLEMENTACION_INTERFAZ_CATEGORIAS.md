@@ -65,7 +65,7 @@ Persisten avisos no bloqueantes de `@MockBean`, API deprecada en `SessionModelAd
 
 ## 7. Validación local y pendientes
 
-La instancia local corre con JDK 21.0.10 y perfil `local` en `http://localhost:8080/` (PID 20120). Respondió `/login` HTTP 200; `/` y `/categorias` redirigen a login sin sesión. Se sirvió el CSS de Categorías con HTTP 200. El arranque mantuvo `ddl-auto=validate`.
+La instancia local corre con JDK 21.0.10 y perfil `local` en `http://localhost:8080/` (PID 10680). Respondió `/login` HTTP 200; `/` y `/categorias` redirigen a login sin sesión. Se sirvió el CSS de Categorías con HTTP 200. El arranque mantuvo `ddl-auto=validate`.
 
 Las páginas autenticadas se renderizaron con MockMvc y DTOs simulados. No se inició sesión real, ni se ejecutaron altas o ediciones en Supabase; por eso las operaciones reales quedan pendientes de prueba autorizada. La búsqueda se probó por inspección/markup y no en navegador automatizado.
 

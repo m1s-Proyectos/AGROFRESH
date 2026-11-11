@@ -46,6 +46,44 @@ public class SecurityConfig {
                 .access((authentication, request) -> new AuthorizationDecision(
                     permisos.puede(authentication.get(), "producto", "ACCEDER")
                             && permisos.puede(authentication.get(), "producto", "SELECT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/nueva")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "INSERT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/productos/guardar")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "INSERT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/editar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "UPDATE")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/productos/actualizar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "UPDATE")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/consultar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "SELECT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/productos")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "producto", "ACCEDER")
+                            && permisos.puede(authentication.get(), "producto", "SELECT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/proveedores/nueva")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "INSERT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/proveedores/guardar")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "INSERT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/proveedores/editar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "UPDATE")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/proveedores/actualizar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "UPDATE")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/proveedores/consultar/**")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "SELECT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.GET, "/proveedores")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "proveedor", "ACCEDER")
+                            && permisos.puede(authentication.get(), "proveedor", "SELECT")));
             reglas.requestMatchers("/login", "/css/**", "/webjars/**", "/favicon.ico", "/error").permitAll();
             // Estas rutas se validan en el servidor, no solo en el menú.
             String[] rutas = {"usuarios", "productos", "proveedores", "inventario", "traslados", "compras", "lotes", "categorias", "movimientos", "reportes"};
