@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Historial de movimientos | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv3')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('movimientos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / HISTORIAL</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">TRAZABILIDAD DE STOCK.</p>
+                    <h1>Historial de <em>movimientos.</em></h1>
+                    <p>Consulta entradas por recepción, traslados, salidas y bajas registradas en el sistema. Esta pantalla no modifica existencias.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◎</div>
+            </section>
+
+            <section class="inventario-panel categorias-panel" aria-labelledby="movimientos-title">
+                <div th:replace="~{fragments/movimientos-submenu :: submenu('historial')}"></div>
+                <div class="panel-topline categorias-panel-heading">
+                    <div>
+                        <span class="section-kicker">CONSULTA</span>
+                        <h2 id="movimientos-title">Movimientos registrados</h2>
+                        <p class="inventario-nota mb-0">Filtra por tipo, bodega, producto y fechas. Usa «Consultar» en cada fila para el detalle.</p>
+                    </div>
+                </div>
+
+                <form class="categoria-search movimiento-filtros" th:action="@{/movimientos}" method="get">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label for="filtroTipo"><span>Tipo</span>
+                                <select id="filtroTipo" name="tipo" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option th:each="t : ${tiposMovimiento}" th:value="${t}" th:text="${t}"
+                                            th:selected="${filtroTipo == t}">ENTRADA</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label for="filtroBodega"><span>Bodega</span>
+                                <select id="filtroBodega" name="bodega" class="form-select">
+                                    <option value="">Todas las bodegas</option>
+                                    <option th:each="b : ${bodegas}" th:value="${b.id()}" th:text="${b.etiqueta()}"
+                                            th:selected="${filtroBodega != null && filtroBodega == b.id()}">Bodega</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label for="filtroProducto"><span>Producto</span>
+                                <select id="filtroProducto" name="producto" class="form-select">
+                                    <option value="">Todos los productos</option>
+                                    <option th:each="p : ${productos}" th:value="${p.id()}" th:text="${p.etiqueta()}"
+                                            th:selected="${filtroProducto != null && filtroProducto == p.id()}">Producto</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg-2">
+                            <label for="filtroDesde"><span>Desde</span>
+                                <input id="filtroDesde" name="desde" type="date" class="form-control"
+                                       th:value="${filtroDesde}">
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg-2">
+                            <label for="filtroHasta"><span>Hasta</span>
+                                <input id="filtroHasta" name="hasta" type="date" class="form-control"
+                                       th:value="${filtroHasta}">
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-auto">
+                            <button type="submit" class="categoria-primary-action">Aplicar filtros</button>
+                            <a class="categoria-secondary-action" th:href="@{/movimientos}">Limpiar</a>
+                        </div>
+                    </div>
+                </form>
+
+                <p class="inventario-nota" th:if="${totalRegistros > 0}">
+                    Mostrando página <span th:text="${pagina + 1}">1</span>
+                    — <span th:text="${totalRegistros}">0</span> movimiento(s) en total.
+                </p>
+
+                <div class="inventario-table-wrap categorias-table-wrap">
+                    <table class="inventario-table categorias-table">
+                        <caption class="visually-hidden">Historial de movimientos de inventario</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Tipo</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Bodega origen</th>
+                            <th scope="col">Bodega destino</th>
+                            <th scope="col">Lote</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Responsable</th>
+                            <th scope="col">Origen</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${movimientos}">
+                            <td th:text="${#temporals.format(m.fecha(), 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                            <td>
+                                <span th:switch="${m.tipoMovimiento()}">
+                                    <span th:case="'ENTRADA'">Entrada</span>
+                                    <span th:case="'SALIDA'">Salida</span>
+                                    <span th:case="'TRASLADO'">Traslado</span>
+                                    <span th:case="'BAJA_VENCIMIENTO'">Baja vencimiento</span>
+                                    <span th:case="'BAJA_DAÑO'">Baja daño</span>
+                                    <span th:case="*" th:text="${m.tipoMovimiento()}">—</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${m.idProducto() != null}"
+                                      th:text="${m.codigoProducto() + ' — ' + m.nombreProducto()}">P-01</span>
+                                <span th:if="${m.idProducto() == null}">—</span>
+                            </td>
+                            <td th:text="${m.nombreBodegaOrigen()}">Origen</td>
+                            <td th:text="${m.nombreBodegaDestino() != null ? m.nombreBodegaDestino() : '—'}">—</td>
+                            <td th:text="${m.numLote() != null ? m.numLote() : '—'}">—</td>
+                            <td th:text="${m.cantidad()}">0</td>
+                            <td th:text="${m.nombreResponsable()}">Usuario</td>
+                            <td>
+                                <span th:if="${m.tipoMovimiento() == 'ENTRADA' and m.vinculoCompra()}" class="badge text-bg-success">Recepción</span>
+                                <span th:if="${m.tipoMovimiento() == 'TRASLADO'}" class="badge text-bg-info">Traslado</span>
+                                <span th:if="${m.tipoMovimiento() == 'SALIDA'}" class="badge text-bg-secondary">Salida</span>
+                                <span th:if="${m.tipoMovimiento() == 'BAJA_DAÑO'}" class="badge text-bg-warning">Baja daño</span>
+                                <span th:if="${m.tipoMovimiento() == 'BAJA_VENCIMIENTO'}" class="badge text-bg-danger">Baja venc.</span>
+                                <span th:if="${m.tipoMovimiento() == 'ENTRADA' and !m.vinculoCompra()}">Entrada</span>
+                            </td>
+                            <td>
+                                <a class="categoria-secondary-action"
+                                   th:href="@{/movimientos/consultar/{id}(id=${m.idMovimiento()})}">Consultar</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p class="inventario-empty categorias-empty" th:if="${#lists.isEmpty(movimientos)}">
+                        No hay movimientos que coincidan con los filtros seleccionados.
+                    </p>
+                </div>
+
+                <nav class="movimiento-paginacion" th:if="${pagina > 0 or hayMasPaginas}" aria-label="Paginación">
+                    <a class="categoria-secondary-action"
+                       th:if="${pagina > 0}"
+                       th:href="@{/movimientos(tipo=${filtroTipo}, bodega=${filtroBodega}, producto=${filtroProducto}, desde=${filtroDesde}, hasta=${filtroHasta}, pagina=${pagina - 1}, tamano=${tamanoPagina})}">← Anterior</a>
+                    <a class="categoria-secondary-action"
+                       th:if="${hayMasPaginas}"
+                       th:href="@{/movimientos(tipo=${filtroTipo}, bodega=${filtroBodega}, producto=${filtroProducto}, desde=${filtroDesde}, hasta=${filtroHasta}, pagina=${pagina + 1}, tamano=${tamanoPagina})}">Siguiente →</a>
+                </nav>
+            </section>
+            <p class="inventario-nota">Entradas en <a th:href="@{/compras}">Recepción</a>,
+                traslados en <a th:href="@{/traslados}">Traslados</a>.
+                <span th:if="${puedeRegistrarSalida}">Salidas:
+                <a th:href="@{/movimientos/salida/no-perecedero}">no perecedera</a>,
+                <a th:href="@{/movimientos/salida/perecedero}">perecedera</a>.</span>
+                <span th:if="${esAdministrador}">Bajas administrativas disponibles en el menú superior.</span>
+            </p>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

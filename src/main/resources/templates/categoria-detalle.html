@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Detalle de categoría | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('categorias')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> PRODUCTOS / CATEGORÍAS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">DETALLE DEL CATÁLOGO</p>
+                    <h1>Ficha de <em>categoría.</em></h1>
+                    <p>Consulta la información registrada para esta familia de productos.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="categoria-detail-panel" aria-labelledby="categoria-detail-title">
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker">CATEGORÍA <span th:text="${categoria.idCategoria}">1</span></span>
+                        <h2 id="categoria-detail-title" th:text="${categoria.nombre}">Lácteos</h2>
+                    </div>
+                    <a class="categoria-primary-action" th:if="${puedeEditar}"
+                       th:href="@{/categorias/editar/{id}(id=${categoria.idCategoria})}">Editar</a>
+                </div>
+                <dl class="categoria-details">
+                    <dt>ID de categoría</dt>
+                    <dd th:text="${categoria.idCategoria}">1</dd>
+                    <dt>Nombre</dt>
+                    <dd th:text="${categoria.nombre}">Lácteos</dd>
+                    <dt>Descripción</dt>
+                    <dd th:text="${#strings.isEmpty(categoria.descripcion) ? 'Sin descripción' : categoria.descripcion}">Productos refrigerados</dd>
+                </dl>
+                <div class="categoria-form-actions">
+                    <a class="categoria-secondary-action" th:href="@{/categorias}">Volver a categorías</a>
+                </div>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

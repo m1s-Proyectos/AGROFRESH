@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title th:text="${idProveedor == null ? 'Nuevo proveedor' : 'Editar proveedor'} + ' | AGROFRESH'">Proveedor | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('proveedores')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> COMPRAS / PROVEEDORES</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label" th:text="${idProveedor == null ? 'ALTA DE PROVEEDOR' : 'ACTUALIZA LA FICHA DEL PROVEEDOR'}">PROVEEDOR</p>
+                    <h1 th:text="${idProveedor == null ? 'Registrar proveedor.' : 'Editar proveedor.'}">Proveedor</h1>
+                    <p>Completa la información de contacto e identificación tributaria.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="categoria-form-panel" aria-labelledby="proveedor-form-title">
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker" th:text="${idProveedor == null ? 'ALTA DE PROVEEDOR' : 'EDICIÓN DE PROVEEDOR'}">PROVEEDOR</span>
+                        <h2 id="proveedor-form-title" th:text="${idProveedor == null ? 'Datos del proveedor' : 'Editar datos'}">Datos</h2>
+                    </div>
+                    <span class="operation-tag" th:if="${idProveedor != null}" th:text="${'ID ' + idProveedor}">ID</span>
+                </div>
+
+                <form th:object="${proveedorForm}"
+                      th:action="${idProveedor == null} ? @{/proveedores/guardar} : @{/proveedores/actualizar/{id}(id=${idProveedor})}"
+                      method="post" novalidate id="proveedorForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="categoria-form-grid">
+                        <div class="categoria-field">
+                            <label for="nombre">Nombre <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="nombre" th:field="*{nombre}" type="text" maxlength="150" autocomplete="organization"
+                                   placeholder="Ej.: Distribuidora El Campo"
+                                   th:classappend="${error != null and #strings.contains(error, 'nombre')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 150 caracteres.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'nombre')}" th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="dui">DUI <span class="categoria-optional">(opcional)</span></label>
+                            <input id="dui" th:field="*{dui}" type="text" maxlength="10" autocomplete="off"
+                                   inputmode="numeric" placeholder="Ej.: 12345678-9"
+                                   th:classappend="${error != null and #strings.contains(error, 'DUI')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 10 caracteres. Puede dejarse vacío.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'DUI')}" th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="nit">NIT <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="nit" th:field="*{nit}" type="text" maxlength="17" autocomplete="off"
+                                   placeholder="Ej.: 0614-000000-000-0"
+                                   th:classappend="${error != null and #strings.contains(error, 'NIT')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 17 caracteres. Debe ser único.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'NIT')}" th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="correoElectronico">Correo electrónico <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="correoElectronico" th:field="*{correoElectronico}" type="email" maxlength="100"
+                                   autocomplete="email" placeholder="Ej.: contacto@proveedor.com"
+                                   th:classappend="${error != null and (#strings.contains(error, 'correo') or #strings.contains(error, 'Correo'))} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 100 caracteres. Debe ser un correo válido.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and (#strings.contains(error, 'correo') or #strings.contains(error, 'Correo'))}"
+                                  th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="direccion">Dirección <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="direccion" th:field="*{direccion}" type="text" maxlength="200" autocomplete="street-address"
+                                   placeholder="Ej.: Km 12 carretera a Santa Ana"
+                                   th:classappend="${error != null and #strings.contains(error, 'dirección')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 200 caracteres.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'dirección')}" th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="telefono">Teléfono <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="telefono" th:field="*{telefono}" type="tel" maxlength="9" autocomplete="tel"
+                                   inputmode="numeric" placeholder="Ej.: 71234567"
+                                   th:classappend="${error != null and #strings.contains(error, 'teléfono')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 9 caracteres.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'teléfono')}" th:text="${error}">Error</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="iva">IVA <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="iva" th:field="*{iva}" type="text" maxlength="50" autocomplete="off"
+                                   placeholder="Ej.: Gravado"
+                                   th:classappend="${error != null and #strings.contains(error, 'IVA')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 50 caracteres. Texto libre según régimen del proveedor.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'IVA')}" th:text="${error}">Error</span>
+                        </div>
+                    </div>
+
+                    <div class="categoria-form-actions">
+                        <a class="categoria-secondary-action" th:href="@{/proveedores}">Cancelar</a>
+                        <button class="categoria-primary-action" type="submit"
+                                th:text="${idProveedor == null ? 'Registrar proveedor' : 'Guardar cambios'}">Guardar</button>
+                    </div>
+                </form>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

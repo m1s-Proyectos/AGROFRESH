@@ -10,6 +10,7 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
     <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv3')}">
 </head>
 <body>
 <div class="app-shell">
@@ -26,6 +27,7 @@
                 </div>
                 <div class="traslado-emblem" aria-hidden="true">⇄</div>
             </section>
+            <div th:if="${accesos['movimiento']}" th:replace="~{fragments/movimientos-submenu :: submenu('traslados')}"></div>
             <div class="traslado-layout">
                 <section class="traslado-panel" aria-labelledby="form-title">
                     <div class="panel-topline">

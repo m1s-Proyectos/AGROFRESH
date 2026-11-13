@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title th:text="${idCategoria == null ? 'Nueva categoría' : 'Editar categoría'} + ' | AGROFRESH'">Categoría | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('categorias')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> PRODUCTOS / CATEGORÍAS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label" th:text="${idCategoria == null ? 'NUEVA FAMILIA DE PRODUCTOS' : 'ACTUALIZA LOS DATOS DEL CATÁLOGO'}">CATÁLOGO</p>
+                    <h1 th:text="${idCategoria == null ? 'Registrar categoría.' : 'Editar categoría.'}">Categoría</h1>
+                    <p>Usa un nombre claro y una descripción breve para identificar esta familia.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="categoria-form-panel" aria-labelledby="categoria-form-title">
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker" th:text="${idCategoria == null ? 'ALTA DE CATÁLOGO' : 'EDICIÓN DE CATÁLOGO'}">CATEGORÍA</span>
+                        <h2 id="categoria-form-title" th:text="${idCategoria == null ? 'Datos de la categoría' : 'Editar datos'}">Datos</h2>
+                    </div>
+                    <span class="operation-tag" th:if="${idCategoria != null}" th:text="${'ID ' + idCategoria}">ID</span>
+                </div>
+
+                <form th:object="${categoriaForm}"
+                      th:action="${idCategoria == null} ? @{/categorias/guardar} : @{/categorias/actualizar/{id}(id=${idCategoria})}"
+                      method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="categoria-form-grid">
+                        <div class="categoria-field">
+                            <label for="nombre">Nombre <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input id="nombre" th:field="*{nombre}" type="text" maxlength="150" required
+                                   autocomplete="off" placeholder="Ej.: Lácteos"
+                                   th:classappend="${error != null and #strings.contains(error, 'nombre')} ? 'is-invalid' : ''">
+                            <small class="categoria-field-hint">Máximo 150 caracteres. Los espacios exteriores se recortan al guardar.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'nombre')}" th:text="${error}">Error del nombre</span>
+                        </div>
+                        <div class="categoria-field">
+                            <label for="descripcion">Descripción <span class="categoria-optional">(opcional)</span></label>
+                            <textarea id="descripcion" th:field="*{descripcion}" maxlength="200" rows="4"
+                                      placeholder="Describe brevemente esta categoría"
+                                      th:classappend="${error != null and #strings.contains(error, 'descripción')} ? 'is-invalid' : ''"></textarea>
+                            <small class="categoria-field-hint">Máximo 200 caracteres. Puede dejarse vacía.</small>
+                            <span class="categoria-field-error" role="alert"
+                                  th:if="${error != null and #strings.contains(error, 'descripción')}" th:text="${error}">Error de descripción</span>
+                        </div>
+                    </div>
+                    <div class="categoria-form-actions">
+                        <a class="categoria-secondary-action" th:href="@{/categorias}">Cancelar</a>
+                        <button class="categoria-primary-action" type="submit"
+                                th:text="${idCategoria == null ? 'Registrar categoría' : 'Guardar cambios'}">Guardar</button>
+                    </div>
+                </form>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

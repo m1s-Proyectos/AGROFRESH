@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Detalle de producto | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('productos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> CATÁLOGO / PRODUCTOS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">DETALLE DEL CATÁLOGO</p>
+                    <h1>Ficha de <em>producto.</em></h1>
+                    <p>Consulta la información registrada para este producto.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="categoria-detail-panel" aria-labelledby="producto-detail-title">
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker">PRODUCTO <span th:text="${producto.idProducto()}">1</span></span>
+                        <h2 id="producto-detail-title" th:text="${producto.nombre()}">Mango</h2>
+                    </div>
+                    <a class="categoria-primary-action" th:if="${puedeEditar}"
+                       th:href="@{/productos/editar/{id}(id=${producto.idProducto()})}">Editar</a>
+                </div>
+                <dl class="categoria-details">
+                    <dt>Código interno</dt>
+                    <dd th:text="${producto.codigoInterno()}">P-01</dd>
+                    <dt>Nombre</dt>
+                    <dd th:text="${producto.nombre()}">Mango</dd>
+                    <dt>Categoría</dt>
+                    <dd th:text="${producto.nombreCategoria()}">Frutas</dd>
+                    <dt>Unidad de medida</dt>
+                    <dd th:text="${producto.unidadMedida()}">Kilogramo</dd>
+                    <dt>Clasificación</dt>
+                    <dd>
+                        <span th:if="${producto.clasificacion().name() == 'PERECEDERO'}">Perecedero</span>
+                        <span th:if="${producto.clasificacion().name() == 'NO_PERECEDERO'}">No perecedero</span>
+                    </dd>
+                    <th:block th:if="${producto.clasificacion().name() == 'PERECEDERO'}">
+                        <dt>Temperatura recomendada</dt>
+                        <dd th:text="${producto.temperaturaRecomendada() != null ? producto.temperaturaRecomendada() + ' °C' : '—'}">8.50 °C</dd>
+                        <dt>Vida útil</dt>
+                        <dd th:text="${producto.vidaUtil() != null ? producto.vidaUtil() + ' días' : '—'}">12 días</dd>
+                    </th:block>
+                    <th:block th:if="${producto.clasificacion().name() == 'NO_PERECEDERO'}">
+                        <dt>Fecha de fabricación</dt>
+                        <dd th:text="${producto.fechaFabricacion() != null ? #temporals.format(producto.fechaFabricacion(), 'dd/MM/yyyy') : '—'}">01/01/2026</dd>
+                        <dt>Vida útil en anaquel</dt>
+                        <dd th:text="${producto.vidaUtilAnaquel() != null ? producto.vidaUtilAnaquel() + ' días' : '—'}">365 días</dd>
+                    </th:block>
+                </dl>
+                <div class="categoria-form-actions">
+                    <a class="categoria-secondary-action" th:href="@{/productos}">Volver a productos</a>
+                </div>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

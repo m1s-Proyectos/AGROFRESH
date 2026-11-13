@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Productos | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv1')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('productos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> CATÁLOGO / PRODUCTOS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">FICHAS DEL INVENTARIO.</p>
+                    <h1>Gestión de <em>productos.</em></h1>
+                    <p>Consulta el catálogo, la categoría y la clasificación de cada producto.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◈</div>
+            </section>
+
+            <div class="categoria-message categoria-success" th:if="${exito}" th:text="${exito}" role="status"></div>
+            <div class="categoria-message categoria-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+            <section class="inventario-panel categorias-panel" aria-labelledby="productos-title">
+                <div class="panel-topline categorias-panel-heading">
+                    <div>
+                        <span class="section-kicker">CATÁLOGO</span>
+                        <h2 id="productos-title">Productos registrados</h2>
+                    </div>
+                    <div class="categorias-toolbar">
+                        <label class="categoria-search" for="buscarProductos">
+                            <span>Buscar por código o nombre</span>
+                            <input id="buscarProductos" type="search" placeholder="Ej.: P-01 o Mango" autocomplete="off">
+                        </label>
+                        <a class="categoria-primary-action" th:if="${puedeRegistrar}" th:href="@{/productos/nueva}">
+                            <span aria-hidden="true">＋</span> Registrar producto
+                        </a>
+                    </div>
+                </div>
+
+                <div class="inventario-table-wrap categorias-table-wrap">
+                    <table class="inventario-table categorias-table">
+                        <caption class="visually-hidden">Productos del catálogo</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Unidad</th>
+                            <th scope="col">Clasificación</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="filasProductos">
+                        <tr th:each="p : ${productos}">
+                            <td class="categoria-id" th:text="${p.codigoInterno}">P-01</td>
+                            <td><strong th:text="${p.nombre}">Mango</strong></td>
+                            <td th:text="${p.nombreCategoria}">Frutas</td>
+                            <td th:text="${p.unidadMedida}">Kilogramo</td>
+                            <td>
+                                <span th:if="${p.clasificacion.name() == 'PERECEDERO'}">Perecedero</span>
+                                <span th:if="${p.clasificacion.name() == 'NO_PERECEDERO'}">No perecedero</span>
+                            </td>
+                            <td>
+                                <div class="categoria-row-actions">
+                                    <a class="categoria-secondary-action"
+                                       th:href="@{/productos/consultar/{id}(id=${p.idProducto})}">Consultar</a>
+                                    <a class="categoria-secondary-action categoria-edit-action"
+                                       th:if="${puedeEditar}"
+                                       th:href="@{/productos/editar/{id}(id=${p.idProducto})}">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p class="inventario-empty categorias-empty" id="sinProductos"
+                       th:if="${#lists.isEmpty(productos)}">Todavía no hay productos registrados.</p>
+                    <p class="inventario-empty categorias-empty" id="sinResultados" hidden>
+                        No se encontraron productos con ese criterio.
+                    </p>
+                </div>
+                <p class="inventario-nota">Esta pantalla administra el catálogo de productos; no modifica existencias ni lotes.</p>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script>
+(() => {
+    const search = document.getElementById('buscarProductos');
+    const rows = Array.from(document.querySelectorAll('#filasProductos tr'));
+    const noResults = document.getElementById('sinResultados');
+    if (!search) return;
+    let timer;
+    search.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const term = search.value.trim().toLocaleLowerCase('es');
+            let visible = 0;
+            for (const row of rows) {
+                const matches = row.textContent.toLocaleLowerCase('es').includes(term);
+                row.hidden = !matches;
+                if (matches) visible++;
+            }
+            noResults.hidden = visible > 0 || rows.length === 0;
+        }, 120);
+    });
+})();
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ public class PermisoService {
 
     /** También protege páginas generales cuando una cuenta se desactiva o bloquea durante una sesión. */
     public boolean cuentaHabilitada(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) return false;
+        if (!tieneAutoridadPermitida(auth)) return false;
         try {
             return Boolean.TRUE.equals(jdbc.queryForObject(
                 "SELECT u.activo AND NOT u.bloqueado AND r.activo " +
@@ -24,7 +24,7 @@ public class PermisoService {
     }
 
     public boolean puede(Authentication auth, String recurso, String accion) {
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) return false;
+        if (!tieneAutoridadPermitida(auth)) return false;
         try {
             return Boolean.TRUE.equals(jdbc.queryForObject(
                 "SELECT COALESCE(fn_usuario_tiene_permiso(u.id_usuario, ?, ?), FALSE) " +
@@ -34,5 +34,11 @@ public class PermisoService {
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             return false;
         }
+    }
+
+    private boolean tieneAutoridadPermitida(Authentication auth) {
+        return auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())
+                && auth.getAuthorities().stream()
+                .anyMatch(authority -> RoleAuthorityMapper.isAllowedAuthority(authority.getAuthority()));
     }
 }

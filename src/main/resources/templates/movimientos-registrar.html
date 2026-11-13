@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Registrar operaciones | Movimientos | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv3')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('movimientos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / MOVIMIENTOS</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">OPERACIONES DE INVENTARIO.</p>
+                    <h1>Registrar <em>movimientos.</em></h1>
+                    <p>Accede a las pantallas de entrada, salida, baja y traslado sin salir del módulo Movimientos.</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◎</div>
+            </section>
+            <section class="inventario-panel">
+                <div th:replace="~{fragments/movimientos-submenu :: submenu('registrar')}"></div>
+                <div class="movimientos-op-grid">
+                    <div class="movimiento-op-card" th:if="${accesos['compra']}">
+                        <h2>Registrar entrada</h2>
+                        <p>Recepción por compra, lotes y actualización de existencias.</p>
+                        <a class="categoria-primary-action" th:href="@{/compras}">Ir a recepción</a>
+                    </div>
+                    <div class="movimiento-op-card" th:if="${puedeRegistrarSalida}">
+                        <h2>Registrar salida</h2>
+                        <p>Descarga de stock no perecedero o perecedero (FEFO automático en PostgreSQL).</p>
+                        <a class="categoria-secondary-action" th:href="@{/movimientos/salida/no-perecedero}">No perecedero</a>
+                        <a class="categoria-secondary-action" th:href="@{/movimientos/salida/perecedero}">Perecedero</a>
+                    </div>
+                    <div class="movimiento-op-card" th:if="${esAdministrador}">
+                        <h2>Registrar baja</h2>
+                        <p>Bajas administrativas por daño o vencimiento.</p>
+                        <a class="categoria-secondary-action" th:href="@{/movimientos/baja/dano/no-perecedero}">Daño (NP)</a>
+                        <a class="categoria-secondary-action" th:href="@{/movimientos/baja/dano/perecedero}">Daño (PER)</a>
+                        <a class="categoria-secondary-action" th:href="@{/movimientos/baja/vencimiento}">Vencimiento</a>
+                    </div>
+                    <div class="movimiento-op-card" th:if="${accesos['traslado']}">
+                        <h2>Traslados</h2>
+                        <p>Movimiento entre bodegas con control de lotes.</p>
+                        <a class="categoria-primary-action" th:href="@{/traslados}">Ir a traslados</a>
+                    </div>
+                </div>
+                <p class="inventario-nota" th:if="${!puedeRegistrarSalida and !esAdministrador}">
+                    Tienes acceso de consulta al historial. Las operaciones de salida o baja requieren permisos adicionales.
+                </p>
+                <a class="categoria-secondary-action" th:href="@{/movimientos}">← Consultar historial</a>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

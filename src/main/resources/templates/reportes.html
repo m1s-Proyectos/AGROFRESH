@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reportes | AGROFRESH</title>
+<link rel="stylesheet" th:href="@{/css/agrofresh.css}">
+<link rel="stylesheet" th:href="@{/css/traslados.css}">
+<link rel="stylesheet" th:href="@{/css/inventario.css}">
+<link rel="stylesheet" th:href="@{/css/reportes.css}">
+</head>
+<body><div class="app-shell">
+<div th:replace="~{layout/header :: header}"></div>
+<div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('reportes')}"></div>
+<main class="main-content traslado-main">
+  <div class="eyebrow"><span class="eyebrow-line"></span> INTELIGENCIA / INVENTARIO</div>
+  <section class="traslado-intro"><div>
+    <p class="date-label">DATOS DIRECTAMENTE DESDE POSTGRESQL</p>
+    <h1>Centro de <em>reportes.</em></h1>
+    <p>Consulta existencias, vencimientos, movimientos y compras. Los cálculos se realizan mediante vistas y funciones almacenadas.</p>
+  </div><div class="traslado-emblem" aria-hidden="true">▤</div></section>
+  <nav class="reporte-tabs" aria-label="Tipos de reporte">
+    <a th:classappend="${tipo=='existencias'} ? 'seleccionado' : ''" th:href="@{/reportes(tipo='existencias')}">Existencias</a>
+    <a th:classappend="${tipo=='vencimientos'} ? 'seleccionado' : ''" th:href="@{/reportes(tipo='vencimientos')}">Vencimientos</a>
+    <a th:classappend="${tipo=='movimientos'} ? 'seleccionado' : ''" th:href="@{/reportes(tipo='movimientos')}">Movimientos</a>
+    <a th:classappend="${tipo=='compras'} ? 'seleccionado' : ''" th:href="@{/reportes(tipo='compras')}">Compras</a>
+  </nav>
+  <section class="inventario-panel reporte-panel">
+    <div class="panel-topline"><div><span class="section-kicker">REPORTES PARAMETRIZADOS</span>
+      <h2 th:text="${tipo=='existencias' ? 'Existencias por bodega' : (tipo=='vencimientos' ? 'Lotes y vencimientos' : (tipo=='movimientos' ? 'Historial de movimientos' : 'Compras por proveedor'))}">Reportes</h2>
+    </div><span class="operation-tag">Solo lectura</span></div>
+    <p class="reporte-error" th:if="${error != null}" th:text="${error}" role="alert"></p>
+    <form class="reporte-filtros" method="get" th:action="@{/reportes}">
+      <input type="hidden" name="tipo" th:value="${tipo}">
+      <div class="traslado-field" th:if="${tipo=='movimientos' or tipo=='compras'}"><label for="desde">Desde</label>
+        <input id="desde" type="date" name="desde" th:value="${desde}" required></div>
+      <div class="traslado-field" th:if="${tipo=='movimientos' or tipo=='compras'}"><label for="hasta">Hasta</label>
+        <input id="hasta" type="date" name="hasta" th:value="${hasta}" required></div>
+      <div class="traslado-field" th:if="${tipo=='existencias' or tipo=='vencimientos'}"><label for="buscar">Producto o código</label>
+        <input id="buscar" type="search" name="buscar" maxlength="100" placeholder="Buscar producto" th:value="${buscar}"></div>
+      <div class="traslado-field" th:if="${tipo!='compras'}"><label for="bodega">Bodega</label>
+        <select id="bodega" name="bodega"><option value="">Todas las bodegas</option>
+          <option th:each="b : ${bodegas}" th:value="${b.id_bodega}" th:text="${b.nombre}" th:selected="${bodega != null and b.id_bodega == bodega}">Bodega</option>
+        </select></div>
+      <div class="traslado-field" th:if="${tipo=='compras'}"><label for="proveedor">Proveedor</label>
+        <select id="proveedor" name="proveedor"><option value="">Todos los proveedores</option>
+          <option th:each="p : ${proveedores}" th:value="${p.id_proveedor}" th:text="${p.nombre}" th:selected="${proveedor != null and p.id_proveedor == proveedor}">Proveedor</option>
+        </select></div>
+      <button class="reporte-filtrar" type="submit">Generar reporte</button>
+    </form>
+    <div class="reporte-indicadores"><div><span>Registros encontrados</span><strong th:text="${cantidad}">0</strong></div>
+      <div th:if="${tipo=='compras'}"><span>Total de compras filtradas</span><strong th:text="${'$ '+#numbers.formatDecimal(total,1,2)}">$0.00</strong></div>
+      <div><span>Origen de datos</span><strong class="reporte-db">PostgreSQL</strong></div></div>
+    <div class="inventario-table-wrap"><table class="inventario-table">
+      <thead th:if="${tipo=='existencias'}"><tr><th>Producto</th><th>Categoría</th><th>Bodega</th><th class="number">Existencia</th><th class="number">Mínimo</th><th>Estado</th></tr></thead>
+      <tbody th:if="${tipo=='existencias'}"><tr th:each="f : ${filas}"><td><strong th:text="${f.producto}"></strong><small th:text="${f.codigo_interno}"></small></td><td th:text="${f.categoria}"></td><td th:text="${f.bodega}"></td><td class="number" th:text="${f.cantidad_actual}"></td><td class="number" th:text="${f.stock_minimo}"></td><td><span class="reporte-estado" th:classappend="${f.estado=='AGOTADO' ? 'estado-critico' : (f.estado=='BAJO' ? 'estado-alerta' : 'estado-ok')}" th:text="${f.estado}"></span></td></tr></tbody>
+      <thead th:if="${tipo=='vencimientos'}"><tr><th>Lote</th><th>Producto</th><th>Bodega</th><th>Proveedor</th><th>Vencimiento</th><th class="number">Días</th><th class="number">Unidades</th><th>Estado</th></tr></thead>
+      <tbody th:if="${tipo=='vencimientos'}"><tr th:each="f : ${filas}"><td th:text="${f.num_lote}"></td><td th:text="${f.producto}"></td><td th:text="${f.bodega}"></td><td th:text="${f.proveedor}"></td><td th:text="${f.fech_vencimiento}"></td><td class="number" th:text="${f.dias_restantes}"></td><td class="number" th:text="${f.cantidad_actual}"></td><td><span class="reporte-estado" th:classappend="${f.estado=='VENCIDO' ? 'estado-critico' : (f.estado=='PROXIMO' ? 'estado-alerta' : 'estado-ok')}" th:text="${f.estado}"></span></td></tr></tbody>
+      <thead th:if="${tipo=='movimientos'}"><tr><th>ID</th><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Origen</th><th>Destino</th><th class="number">Cantidad</th><th>Responsable</th></tr></thead>
+      <tbody th:if="${tipo=='movimientos'}"><tr th:each="f : ${filas}"><td th:text="${f.id_movimiento}"></td><td th:text="${f.fecha == null ? '—' : #dates.format(f.fecha,'dd/MM/yyyy HH:mm')}"></td><td th:text="${f.tipo_movimiento}"></td><td th:text="${f.producto ?: '—'}"></td><td th:text="${f.bodega_origen}"></td><td th:text="${f.bodega_destino ?: '—'}"></td><td class="number" th:text="${f.cantidad}"></td><td th:text="${f.responsable}"></td></tr></tbody>
+      <thead th:if="${tipo=='compras'}"><tr><th>ID compra</th><th>Fecha</th><th>Proveedor</th><th class="number">Total ($)</th></tr></thead>
+      <tbody th:if="${tipo=='compras'}"><tr th:each="f : ${filas}"><td th:text="${f.id_compra}"></td><td th:text="${f.fecha_compra}"></td><td th:text="${f.proveedor}"></td><td class="number" th:text="${#numbers.formatDecimal(f.total_compra,1,2)}"></td></tr></tbody>
+      <tbody th:if="${#lists.isEmpty(filas)}"><tr><td class="inventario-empty" colspan="8">No se encontraron datos para los filtros seleccionados.</td></tr></tbody>
+    </table></div>
+    <p class="inventario-nota">Estos reportes son consultas de lectura; no generan ni modifican movimientos de inventario.</p>
+  </section>
+  <div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+</body></html>

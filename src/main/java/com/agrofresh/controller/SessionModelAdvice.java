@@ -29,13 +29,28 @@ public class SessionModelAdvice {
         String nombre = jdbc.query(
             "SELECT nombre || ' ' || apellido FROM usuario WHERE username = ?",
             rs -> rs.next() ? rs.getString(1) : username, username);
-        // Consultar el rol vigente evita mostrar uno antiguo si el administrador lo cambió.
-        String rol = jdbc.query(
-            "SELECT r.nombre FROM usuario u JOIN rol r ON r.id_rol=u.id_rol WHERE u.username=?",
-            rs -> rs.next() ? rs.getString(1) : "", username);
+        String rol = authentication.getAuthorities().stream()
+            .map(a -> a.getAuthority()).filter(a -> a.startsWith("ROLE_"))
+            .map(a -> a.substring(5)).findFirst().orElse("");
         String fecha = LocalDate.now(ZoneId.of("America/El_Salvador"))
             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("es", "SV")));
         return new SesionVista(username, nombre, rol, fecha);
+    }
+
+    @ModelAttribute("puedeRegistrarSalida")
+    public boolean puedeRegistrarSalida() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return permisos.puede(auth, "movimiento", "INSERT");
+    }
+
+    @ModelAttribute("esAdministrador")
+    public boolean esAdministrador() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @ModelAttribute("accesos")
@@ -45,6 +60,8 @@ public class SessionModelAdvice {
         for (String recurso : new String[]{"usuario", "producto", "proveedor", "inventario", "traslado", "compra", "lote", "movimiento", "reporte"}) {
             mapa.put(recurso, permisos.puede(auth, recurso, "ACCEDER"));
         }
+        // Categorías comparte el recurso de permisos existente "producto".
+        mapa.put("categoria", mapa.get("producto"));
         return mapa;
     }
 

@@ -21,12 +21,16 @@ public class AgroFreshUserDetailsService implements UserDetailsService {
         var matches = jdbc.query(
             "SELECT u.username, u.contrasena, u.activo, u.bloqueado, r.nombre AS rol, r.activo AS rol_activo " +
             "FROM usuario u JOIN rol r ON r.id_rol = u.id_rol WHERE u.username = ?",
-            (rs, row) -> User.withUsername(rs.getString("username"))
-                .password(rs.getString("contrasena"))
-                .disabled(!rs.getBoolean("activo") || !rs.getBoolean("rol_activo"))
-                .accountLocked(rs.getBoolean("bloqueado"))
-                .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + rs.getString("rol").toUpperCase())))
-                .build(), username);
+            (rs, row) -> {
+                String authority = RoleAuthorityMapper.authorityFor(rs.getString("rol"))
+                        .orElseThrow(() -> new UsernameNotFoundException("Credenciales incorrectas"));
+                return User.withUsername(rs.getString("username"))
+                        .password(rs.getString("contrasena"))
+                        .disabled(!rs.getBoolean("activo") || !rs.getBoolean("rol_activo"))
+                        .accountLocked(rs.getBoolean("bloqueado"))
+                        .authorities(List.of(new SimpleGrantedAuthority(authority)))
+                        .build();
+            }, username);
         if (matches.size() != 1) {
             throw new UsernameNotFoundException("Credenciales incorrectas");
         }
