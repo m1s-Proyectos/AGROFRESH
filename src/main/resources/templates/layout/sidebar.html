@@ -13,7 +13,7 @@
         <a th:if="${accesos['traslado']}" class="nav-item" th:href="@{/traslados}" th:classappend="${activePage == 'traslados'} ? 'active' : ''" th:attr="aria-current=${activePage == 'traslados'} ? 'page' : null"><span class="nav-icon" aria-hidden="true">↔</span><span>Traslados</span></a>
         <a class="nav-item" th:if="${accesos['compra']}" th:href="@{/compras}" th:classappend="${activePage == 'compras'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Recepción / Compras</span></a>
         <a class="nav-item" th:if="${accesos['lote']}" th:href="@{/lotes}" th:classappend="${activePage == 'lotes'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Lotes</span></a>
-        <a class="nav-item" th:if="${accesos['movimiento']}" th:href="@{/movimientos}" th:classappend="${activePage == 'movimientos'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Movimientos</span><span class="nav-pending">Pendiente</span></a>
+        <a class="nav-item" th:if="${accesos['movimiento']}" th:href="@{/movimientos}" th:classappend="${activePage == 'movimientos'} ? 'active' : ''" th:attr="aria-current=${activePage == 'movimientos'} ? 'page' : null"><span class="nav-icon" aria-hidden="true">◈</span><span>Movimientos</span></a>
         <a class="nav-item" th:if="${accesos['reporte']}" th:href="@{/reportes}" th:classappend="${activePage == 'reportes'} ? 'active' : ''" ><span class="nav-icon" aria-hidden="true">◈</span><span>Reportes</span><span class="nav-pending">Pendiente</span></a>
     </nav>
     <div class="sidebar-note">

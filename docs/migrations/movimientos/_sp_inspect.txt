@@ -1,0 +1,357 @@
+schema=inventario
+=== sp_trasladar_perecedero count=1 ===
+args: IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer
+CREATE OR REPLACE PROCEDURE inventario.sp_trasladar_perecedero(IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer)
+ LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    v_id_movimiento INT;
+    v_id_proveedor INT;
+    v_fecha_vencimiento DATE;
+BEGIN
+
+    -- 1. Validar traslado
+    PERFORM fn_validar_traslado(p_id_bodega_origen, p_id_bodega_destino, p_id_producto, p_cantidad);
+	
+	-- 2. Bloquear bodegas en orden
+    PERFORM 1
+    FROM bodega
+    WHERE id_bodega IN (
+        p_id_bodega_origen,
+        p_id_bodega_destino
+    )
+    ORDER BY id_bodega
+    FOR UPDATE;
+
+    -- 3. Volver a validar después del bloqueo
+    PERFORM fn_validar_traslado(
+        p_id_bodega_origen,
+        p_id_bodega_destino,
+        p_id_producto,
+        p_cantidad
+    );
+	
+    -- 4. Verificar producto perecedero
+    IF NOT EXISTS (
+        SELECT 1
+        FROM perecedero
+        WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es perecedero';
+    END IF;
+
+    -- 5. Verificar usuario
+    IF NOT EXISTS (
+        SELECT 1
+        FROM usuario
+        WHERE id_usuario = p_id_usuario
+          AND activo = TRUE
+    ) THEN
+        RAISE EXCEPTION 'Usuario invalido o inactivo';
+    END IF;
+
+    -- 6. Consultar datos del lote
+    SELECT id_proveedor, fech_vencimiento
+    INTO v_id_proveedor, v_fecha_vencimiento
+    FROM lote
+    WHERE num_lote = p_num_lote
+      AND id_bodega = p_id_bodega_origen
+      AND id_producto = p_id_producto
+	 FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El lote no existe en origen';
+    END IF;
+
+    -- 7. Verificar vencimiento
+    IF v_fecha_vencimiento <= CURRENT_DATE THEN
+        RAISE EXCEPTION 'El lote esta vencido';
+    END IF;
+
+    -- 8. Descontar del lote de origen
+    UPDATE lote
+    SET cantidad_actual = cantidad_actual - p_cantidad
+    WHERE num_lote = p_num_lote
+      AND id_bodega = p_id_bodega_origen
+      AND id_producto = p_id_producto
+      AND cantidad_actual >= p_cantidad;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Cantidad insuficiente en el lote';
+    END IF;
+
+    -- 9. Agregar lote en destino
+    INSERT INTO lote (num_lote, id_bodega, id_producto, id_proveedor, fech_vencimiento, cantidad_recibida, cantidad_actual)
+    VALUES (p_num_lote, p_id_bodega_destino, p_id_producto, v_id_proveedor, v_fecha_vencimiento, p_cantidad, p_cantidad)
+    ON CONFLICT (num_lote, id_bodega, id_producto)
+    DO UPDATE SET
+        cantidad_recibida =
+            lote.cantidad_recibida + EXCLUDED.cantidad_recibida,
+        cantidad_actual =
+            lote.cantidad_actual + EXCLUDED.cantidad_actual
+    WHERE lote.id_proveedor = EXCLUDED.id_proveedor
+      AND lote.fech_vencimiento = EXCLUDED.fech_vencimiento;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El lote tiene datos diferentes en destino';
+    END IF;
+
+    -- 10. Descontar inventario de origen
+    UPDATE inventario
+    SET cantidad_actual = cantidad_actual - p_cantidad
+    WHERE id_bodega = p_id_bodega_origen
+      AND id_producto = p_id_producto
+      AND cantidad_actual >= p_cantidad;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Inventario insuficiente en origen';
+    END IF;
+
+    -- 11. Aumentar inventario de destino
+    INSERT INTO inventario (id_bodega, id_producto, cantidad_actual)
+    VALUES (p_id_bodega_destino, p_id_producto, p_cantidad)
+    ON CONFLICT (id_bodega, id_producto)
+    DO UPDATE SET
+        cantidad_actual =
+            inventario.cantidad_actual + EXCLUDED.cantidad_actual;
+
+    -- 12. Registrar movimiento
+    INSERT INTO movimiento (tipo_movimiento, cantidad, id_bodega,id_usuario, id_producto, num_lote)
+    VALUES ('TRASLADO', p_cantidad, p_id_bodega_origen, p_id_usuario, p_id_producto, p_num_lote)
+    RETURNING id_movimiento INTO v_id_movimiento;
+
+    INSERT INTO movimiento_bodega (id_movimiento, id_bodega_destino)
+    VALUES (v_id_movimiento, p_id_bodega_destino);
+
+END;
+$procedure$
+
+
+=== sp_trasladar_no_perecedero count=1 ===
+args: IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer
+CREATE OR REPLACE PROCEDURE inventario.sp_trasladar_no_perecedero(IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer)
+ LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+	v_id_movimiento		INTEGER;
+BEGIN 
+	-- 1. Validar traslado
+	PERFORM fn_validar_traslado(p_id_bodega_origen, p_id_bodega_destino, p_id_producto, p_cantidad);
+
+ 	-- 2. Bloquear bodegas en orden
+    PERFORM 1
+    FROM bodega
+    WHERE id_bodega IN (
+        p_id_bodega_origen,
+        p_id_bodega_destino
+    )
+    ORDER BY id_bodega
+    FOR UPDATE;
+
+    -- 3. Volver a validar después del bloqueo
+    PERFORM fn_validar_traslado(
+        p_id_bodega_origen,
+        p_id_bodega_destino,
+        p_id_producto,
+        p_cantidad
+    );
+	
+	-- 4. Verificar que sea no perecedero
+	IF NOT EXISTS (
+		SELECT 1
+		FROM no_perecedero
+		WHERE id_producto = p_id_producto
+	) THEN 
+		RAISE EXCEPTION
+			'El producto no es no perecedero';
+	END IF;
+
+	-- 5. Verificar usuario
+	IF NOT EXISTS (
+		SELECT 1
+		FROM usuario
+		WHERE id_usuario = p_id_usuario AND activo = TRUE
+	) THEN
+		RAISE EXCEPTION 'El usuario no existe o esta inactivo';
+	END IF;
+
+	-- 6. Descontar del origen
+	UPDATE inventario
+	SET cantidad_actual = cantidad_actual - p_cantidad
+	WHERE id_bodega = p_id_bodega_origen
+		AND id_producto = p_id_producto
+		AND cantidad_actual >= p_cantidad;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION
+			'Stock insuficiente o inventario no encontrado en origen';
+	END IF;
+
+	-- 7. Aumentar en destino
+	INSERT INTO inventario (id_bodega, id_producto, cantidad_actual)
+	VALUES (p_id_bodega_destino, p_id_producto, p_cantidad)
+	ON CONFLICT (id_bodega, id_producto)
+	DO UPDATE
+	SET cantidad_actual = inventario.cantidad_actual + EXCLUDED.cantidad_actual;
+
+	--8. Registrar movimiento
+	INSERT INTO movimiento (tipo_movimiento, cantidad, id_bodega, id_usuario, id_producto)
+	VALUES ('TRASLADO', p_cantidad, p_id_bodega_origen, p_id_usuario, p_id_producto)
+	RETURNING id_movimiento INTO v_id_movimiento;
+
+	--9. Registrar destino del traslado
+	INSERT INTO movimiento_bodega (id_movimiento, id_bodega_destino)
+	VALUES (v_id_movimiento, p_id_bodega_destino);
+
+	RAISE NOTICE 'Traslado realizado correctamente. ID: %', v_id_movimiento;
+END;
+$procedure$
+
+
+=== sp_recibir_no_perecedero count=1 ===
+args: IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer
+CREATE OR REPLACE PROCEDURE inventario.sp_recibir_no_perecedero(IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer)
+ LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    v_id_proveedor INTEGER;
+    v_precio NUMERIC(10,2);
+    v_subtotal NUMERIC(10,2);
+    v_id_detalle INTEGER;
+    v_id_movimiento INTEGER;
+BEGIN
+    -- Bloquear encabezado para serializar detalles y actualizaciones del total.
+    SELECT id_proveedor INTO v_id_proveedor
+    FROM compra WHERE id_compra = p_id_compra FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La compra no existe';
+    END IF;
+
+    PERFORM fn_validar_recepcion(
+        p_id_compra, p_id_bodega, p_id_producto, p_cantidad, p_id_usuario
+    );
+
+    IF NOT EXISTS (
+        SELECT 1 FROM no_perecedero WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es no perecedero';
+    END IF;
+
+    -- Fechas de fabricacion y vida util pertenecen a no_perecedero en
+    -- el modelo actual; las entradas no crean lotes para este tipo.
+    SELECT precio_vigente INTO v_precio
+    FROM catalogo
+    WHERE id_producto = p_id_producto AND id_proveedor = v_id_proveedor;
+
+    v_subtotal := p_cantidad * v_precio;
+    INSERT INTO detalle_compra (
+        id_compra, id_producto, cantidad, precio_unitario, subtotal
+    ) VALUES (
+        p_id_compra, p_id_producto, p_cantidad, v_precio, v_subtotal
+    ) RETURNING id_detalle_compra INTO v_id_detalle;
+
+    INSERT INTO inventario (id_bodega, id_producto, cantidad_actual)
+    VALUES (p_id_bodega, p_id_producto, p_cantidad)
+    ON CONFLICT (id_bodega, id_producto)
+    DO UPDATE SET cantidad_actual = inventario.cantidad_actual + EXCLUDED.cantidad_actual;
+
+    INSERT INTO movimiento (tipo_movimiento, cantidad, id_bodega, id_usuario, id_producto)
+    VALUES ('ENTRADA', p_cantidad, p_id_bodega, p_id_usuario, p_id_producto)
+    RETURNING id_movimiento INTO v_id_movimiento;
+
+    INSERT INTO movimiento_compra (id_movimiento, id_detalle_compra)
+    VALUES (v_id_movimiento, v_id_detalle);
+
+    UPDATE compra SET total_compra = total_compra + v_subtotal
+    WHERE id_compra = p_id_compra;
+
+    RAISE NOTICE 'Entrada no perecedera registrada. Compra %, movimiento %, subtotal %',
+        p_id_compra, v_id_movimiento, v_subtotal;
+END;
+$procedure$
+
+
+=== fn_validar_traslado count=1 ===
+args: p_id_bodega_origen integer, p_id_bodega_destino integer, p_id_producto integer, p_cantidad integer
+CREATE OR REPLACE FUNCTION inventario.fn_validar_traslado(p_id_bodega_origen integer, p_id_bodega_destino integer, p_id_producto integer, p_cantidad integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+	v_stock	INTEGER;
+BEGIN
+	-- 1. Validar cantidad
+	IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
+		RAISE EXCEPTION 'La cantidad debe ser mayor que cero';
+	END IF;
+
+	-- 2. Validar bodegas diferentes
+	IF p_id_bodega_origen IS NULL OR p_id_bodega_destino IS NULL OR p_id_bodega_origen = p_id_bodega_destino THEN
+		RAISE EXCEPTION 'Las bodegas deben existir y ser diferentes';
+	END IF;
+
+	-- 3. Verificar bodega origen
+	IF NOT EXISTS (
+		SELECT 1 
+		FROM bodega
+		WHERE id_bodega = p_id_bodega_origen
+	) THEN 
+		RAISE EXCEPTION 'La bodega de origen no existe';
+	END IF;
+
+	-- 4. Verificar bodega destino
+	IF NOT EXISTS (
+		SELECT 1
+		FROM bodega
+		WHERE id_bodega = p_id_bodega_destino
+	) THEN
+		RAISE EXCEPTION 'La bodega de destino no existe';
+	END IF;
+
+	-- 5. Verificar producto
+	IF NOT EXISTS (
+		SELECT 1
+		FROM producto
+		WHERE id_producto = p_id_producto
+	) THEN
+		RAISE EXCEPTION 'El producto no existe';
+	END IF;
+
+	-- 6. Consultar stock
+	v_stock := fn_consultar_stock_bodega(p_id_bodega_origen, p_id_producto);
+
+	-- 7. Validar existencia suficiente
+	IF v_stock < p_cantidad THEN
+		RAISE EXCEPTION 
+			'Stock insuficiente. Disponible: %, solicitado: %',
+			v_stock, p_cantidad;
+	END IF;
+
+	RETURN TRUE;
+END;
+$function$
+
+
+=== fn_lotes_disponibles count=1 ===
+args: p_id_bodega integer, p_id_producto integer
+CREATE OR REPLACE FUNCTION inventario.fn_lotes_disponibles(p_id_bodega integer, p_id_producto integer)
+ RETURNS TABLE(num_lote integer, fecha_vencimiento date, cantidad_disponible integer)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+
+    RETURN QUERY
+    SELECT
+        l.num_lote,
+        l.fech_vencimiento,
+        l.cantidad_actual
+    FROM lote l
+    WHERE l.id_bodega = p_id_bodega
+      AND l.id_producto = p_id_producto
+      AND l.cantidad_actual > 0
+      AND l.fech_vencimiento > CURRENT_DATE
+    ORDER BY l.fech_vencimiento;
+
+END;
+$function$
+

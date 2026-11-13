@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Salida perecedera | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv2')}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('movimientos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / MOVIMIENTOS</div>
+            <section class="traslado-intro">
+                <div>
+                    <p class="date-label">SALIDA DE STOCK.</p>
+                    <h1>Salida <em>perecedera.</em></h1>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">↓</div>
+            </section>
+            <div th:replace="~{fragments/movimiento-operacion-form :: formulario(
+                'Registrar salida (perecedero)',
+                'Indica bodega, producto y cantidad; la asignación de lotes la realiza PostgreSQL (FEFO).',
+                'SALIDA',
+                '↓',
+                'salida-per',
+                '/api/movimientos/salida/perecedero',
+                'PERECEDERO',
+                'info',
+                false,
+                true,
+                'Confirmar salida →')}"></div>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

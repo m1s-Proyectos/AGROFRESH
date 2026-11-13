@@ -1,0 +1,488 @@
+=== sesion ===
+current_database	current_user	current_schema	current_setting
+postgres	inventario_dev3	inventario	inventario, public
+
+=== columnas ===
+table_name	column_name	data_type	udt_name	is_nullable	column_default
+bitacora	id_bitacora	integer	int4	NO	
+bitacora	id_usuario	integer	int4	NO	
+bitacora	fecha_hora	timestamp with time zone	timestamptz	NO	CURRENT_TIMESTAMP
+bitacora	tipo_accion	character varying	varchar	NO	
+bitacora	tabla_afectada	character varying	varchar	NO	
+bitacora	descripcion	character varying	varchar	NO	
+bodega	id_bodega	integer	int4	NO	
+bodega	id_usuario	integer	int4	NO	
+bodega	nombre	character varying	varchar	NO	
+bodega	ubicacion	character varying	varchar	NO	
+bodega	capacidad_maxima	numeric	numeric	NO	
+bodega	horario	character varying	varchar	NO	
+inventario	id_bodega	integer	int4	NO	
+inventario	id_producto	integer	int4	NO	
+inventario	cantidad_actual	integer	int4	NO	0
+inventario	stock_minimo	integer	int4	NO	0
+lote	num_lote	integer	int4	NO	
+lote	id_bodega	integer	int4	NO	
+lote	id_producto	integer	int4	NO	
+lote	id_proveedor	integer	int4	NO	
+lote	fech_vencimiento	date	date	NO	
+lote	cantidad_recibida	integer	int4	NO	
+lote	cantidad_actual	integer	int4	NO	0
+movimiento	id_movimiento	integer	int4	NO	
+movimiento	fecha	timestamp with time zone	timestamptz	NO	CURRENT_TIMESTAMP
+movimiento	tipo_movimiento	character varying	varchar	NO	
+movimiento	cantidad	integer	int4	NO	
+movimiento	id_bodega	integer	int4	NO	
+movimiento	id_usuario	integer	int4	NO	
+movimiento	id_producto	integer	int4	YES	
+movimiento	num_lote	integer	int4	YES	
+movimiento_bodega	id_movimiento	integer	int4	NO	
+movimiento_bodega	id_bodega_destino	integer	int4	NO	
+movimiento_compra	id_movimiento	integer	int4	NO	
+movimiento_compra	id_detalle_compra	integer	int4	NO	
+no_perecedero	id_producto	integer	int4	NO	
+no_perecedero	fech_fabricacion	date	date	NO	
+no_perecedero	vida_util_anaquel	integer	int4	NO	
+perecedero	id_producto	integer	int4	NO	
+perecedero	temp_recomendad	numeric	numeric	NO	
+perecedero	vida_util	integer	int4	NO	
+permiso	id_permiso	integer	int4	NO	
+permiso	recurso	character varying	varchar	NO	
+permiso	accion	character varying	varchar	NO	
+permiso	descripcion	character varying	varchar	YES	
+producto	id_producto	integer	int4	NO	
+producto	id_categoria	integer	int4	NO	
+producto	codigo_interno	character varying	varchar	NO	
+producto	nombre	character varying	varchar	NO	
+producto	unidad_medida	character varying	varchar	NO	
+rol	id_rol	integer	int4	NO	
+rol	nombre	character varying	varchar	NO	
+rol	descripcion	character varying	varchar	YES	
+rol	activo	boolean	bool	NO	true
+rol_permiso	id_rol	integer	int4	NO	
+rol_permiso	id_permiso	integer	int4	NO	
+usuario	id_usuario	integer	int4	NO	
+usuario	username	character varying	varchar	NO	
+usuario	contrasena	character varying	varchar	NO	
+usuario	nombre	character varying	varchar	NO	
+usuario	apellido	character varying	varchar	NO	
+usuario	correo	character varying	varchar	NO	
+usuario	activo	boolean	bool	NO	true
+usuario	rol	character varying	varchar	YES	
+usuario	id_rol	integer	int4	NO	
+usuario	bloqueado	boolean	bool	NO	false
+usuario	intentos_fallidos	integer	int4	NO	0
+
+=== pk_fk ===
+table_name	constraint_name	constraint_type	column_name	foreign_table	foreign_column
+bitacora	17612_17932_1_not_null	CHECK			
+bitacora	17612_17932_2_not_null	CHECK			
+bitacora	17612_17932_3_not_null	CHECK			
+bitacora	17612_17932_4_not_null	CHECK			
+bitacora	17612_17932_5_not_null	CHECK			
+bitacora	17612_17932_6_not_null	CHECK			
+bitacora	fk_bitacora_registra_usuario	FOREIGN KEY	id_usuario	usuario	id_usuario
+bitacora	pk_bitacora	PRIMARY KEY	id_bitacora	bitacora	id_bitacora
+inventario	17612_17987_1_not_null	CHECK			
+inventario	17612_17987_2_not_null	CHECK			
+inventario	17612_17987_3_not_null	CHECK			
+inventario	17612_17987_4_not_null	CHECK			
+inventario	ck_inventario_cantidad	CHECK		inventario	cantidad_actual
+inventario	ck_inventario_stock	CHECK		inventario	stock_minimo
+inventario	fk_inventar_comprende_bodega	FOREIGN KEY	id_bodega	bodega	id_bodega
+inventario	fk_inventar_esta_aloj_producto	FOREIGN KEY	id_producto	producto	id_producto
+inventario	pk_inventario	PRIMARY KEY	id_producto	inventario	id_bodega
+inventario	pk_inventario	PRIMARY KEY	id_producto	inventario	id_producto
+inventario	pk_inventario	PRIMARY KEY	id_bodega	inventario	id_producto
+inventario	pk_inventario	PRIMARY KEY	id_bodega	inventario	id_bodega
+lote	17612_17998_1_not_null	CHECK			
+lote	17612_17998_2_not_null	CHECK			
+lote	17612_17998_3_not_null	CHECK			
+lote	17612_17998_4_not_null	CHECK			
+lote	17612_17998_5_not_null	CHECK			
+lote	17612_17998_6_not_null	CHECK			
+lote	17612_17998_7_not_null	CHECK			
+lote	ck_lote_actual	CHECK		lote	cantidad_actual
+lote	ck_lote_cantidad	CHECK		lote	cantidad_recibida
+lote	ck_lote_num	CHECK		lote	num_lote
+lote	fk_lote_abarca_perecede	FOREIGN KEY	id_producto	perecedero	id_producto
+lote	fk_lote_provee_proveedo	FOREIGN KEY	id_proveedor	proveedor	id_proveedor
+lote	fk_lote_se_aloja_bodega	FOREIGN KEY	id_bodega	bodega	id_bodega
+lote	pk_lote	PRIMARY KEY	id_bodega	lote	id_bodega
+lote	pk_lote	PRIMARY KEY	id_producto	lote	id_producto
+lote	pk_lote	PRIMARY KEY	id_producto	lote	id_bodega
+lote	pk_lote	PRIMARY KEY	id_bodega	lote	num_lote
+lote	pk_lote	PRIMARY KEY	id_bodega	lote	id_producto
+lote	pk_lote	PRIMARY KEY	num_lote	lote	num_lote
+lote	pk_lote	PRIMARY KEY	num_lote	lote	id_bodega
+lote	pk_lote	PRIMARY KEY	num_lote	lote	id_producto
+lote	pk_lote	PRIMARY KEY	id_producto	lote	num_lote
+movimiento	17612_18011_1_not_null	CHECK			
+movimiento	17612_18011_2_not_null	CHECK			
+movimiento	17612_18011_3_not_null	CHECK			
+movimiento	17612_18011_4_not_null	CHECK			
+movimiento	17612_18011_5_not_null	CHECK			
+movimiento	17612_18011_6_not_null	CHECK			
+movimiento	ck_movimiento_cantidad	CHECK		movimiento	cantidad
+movimiento	ck_movimiento_tipo	CHECK		movimiento	tipo_movimiento
+movimiento	fk_movimien_ejecuta_usuario	FOREIGN KEY	id_usuario	usuario	id_usuario
+movimiento	fk_movimien_origen_bodega	FOREIGN KEY	id_bodega	bodega	id_bodega
+movimiento	fk_movimien_se_ejecut_producto	FOREIGN KEY	id_producto	producto	id_producto
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_bodega	lote	num_lote
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_bodega	lote	id_producto
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_bodega	lote	id_bodega
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	num_lote	lote	num_lote
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	num_lote	lote	id_producto
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	num_lote	lote	id_bodega
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_producto	lote	num_lote
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_producto	lote	id_producto
+movimiento	fk_movimiento_afecta_lote	FOREIGN KEY	id_producto	lote	id_bodega
+movimiento	pk_movimiento	PRIMARY KEY	id_movimiento	movimiento	id_movimiento
+
+=== check_movimiento ===
+conname	pg_get_constraintdef
+ck_movimiento_cantidad	CHECK ((cantidad > 0))
+ck_movimiento_tipo	CHECK (((tipo_movimiento)::text = ANY ((ARRAY['ENTRADA'::character varying, 'SALIDA'::character varying, 'TRASLADO'::character varying, 'BAJA_VENCIMIENTO'::character varying, 'BAJA_DAÑO'::character varying])::text[])))
+fk_movimien_ejecuta_usuario	FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON UPDATE RESTRICT ON DELETE RESTRICT
+fk_movimien_origen_bodega	FOREIGN KEY (id_bodega) REFERENCES bodega(id_bodega) ON UPDATE RESTRICT ON DELETE RESTRICT
+fk_movimien_se_ejecut_producto	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+fk_movimiento_afecta_lote	FOREIGN KEY (num_lote, id_bodega, id_producto) REFERENCES lote(num_lote, id_bodega, id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+pk_movimiento	PRIMARY KEY (id_movimiento)
+
+=== check_bitacora ===
+conname	pg_get_constraintdef
+fk_bitacora_registra_usuario	FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON UPDATE RESTRICT ON DELETE RESTRICT
+pk_bitacora	PRIMARY KEY (id_bitacora)
+
+=== rutinas_movimiento ===
+proname	args	security
+fn_auditar_traslado		INVOKER
+fn_consultar_stock_bodega	p_id_bodega integer, p_id_producto integer	INVOKER
+fn_hash_contrasena	p_contrasena text	INVOKER
+fn_historial_traslados		INVOKER
+fn_lotes_disponibles	p_id_bodega integer, p_id_producto integer	INVOKER
+fn_reporte_compras	p_desde date, p_hasta date, p_proveedor integer	INVOKER
+fn_reporte_movimientos	p_desde date, p_hasta date, p_bodega integer	INVOKER
+fn_stock_lotes_vigentes	p_id_bodega integer, p_id_producto integer	INVOKER
+fn_tipo_producto	p_id_producto integer	INVOKER
+fn_usuario_tiene_permiso	p_id_usuario integer, p_recurso character varying, p_accion character varying	INVOKER
+fn_validar_recepcion	p_id_compra integer, p_id_bodega integer, p_id_producto integer, p_cantidad integer, p_id_usuario integer	INVOKER
+fn_validar_salida	p_id_bodega integer, p_id_producto integer, p_cantidad integer	INVOKER
+fn_validar_traslado	p_id_bodega_origen integer, p_id_bodega_destino integer, p_id_producto integer, p_cantidad integer	INVOKER
+fn_verificar_contrasena	p_contrasena text, p_hash text	INVOKER
+sp_actualizar_usuario	IN p_id_usuario integer, IN p_nombre character varying, IN p_apellido character varying, IN p_correo character varying, IN p_id_rol integer, IN p_username_responsable character varying	INVOKER
+sp_asignar_permiso	IN p_id_rol integer, IN p_id_permiso integer	INVOKER
+sp_crear_compra	IN p_id_proveedor integer, INOUT p_id_compra integer	INVOKER
+sp_crear_usuario	IN p_username character varying, IN p_contrasena text, IN p_nombre character varying, IN p_apellido character varying, IN p_correo character varying, IN p_id_rol integer, IN p_username_responsable character varying	INVOKER
+sp_recibir_no_perecedero	IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer	INVOKER
+sp_recibir_perecedero	IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_fecha_vencimiento date, IN p_id_usuario integer	INVOKER
+sp_revocar_permiso	IN p_id_rol integer, IN p_id_permiso integer	INVOKER
+sp_salida_no_perecedero	IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer	INVOKER
+sp_salida_perecedero	IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer	INVOKER
+sp_trasladar_no_perecedero	IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer	INVOKER
+sp_trasladar_perecedero	IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer	INVOKER
+
+=== def_sp_salida_no_perecedero ===
+CREATE OR REPLACE PROCEDURE inventario.sp_salida_no_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer)
+ LANGUAGE plpgsql
+AS $procedure$
+BEGIN
+    PERFORM fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad);
+
+  PERFORM 1
+    FROM bodega
+    WHERE id_bodega = p_id_bodega
+    FOR UPDATE;
+
+    PERFORM fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad);
+
+    IF NOT EXISTS (
+        SELECT 1 FROM no_perecedero WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es no perecedero';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM perecedero WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es no perecedero';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM usuario
+        WHERE id_usuario = p_id_usuario
+          AND activo = TRUE
+    ) THEN
+        RAISE EXCEPTION 'El usuario no existe o esta inactivo';
+    END IF;
+
+    PERFORM 1
+    FROM inventario
+    WHERE id_bodega = p_id_bodega
+      AND id_producto = p_id_producto
+    FOR UPDATE;
+
+    UPDATE inventario
+    SET cantidad_actual = cantidad_actual - p_cantidad
+    WHERE id_bodega = p_id_bodega
+      AND id_producto = p_id_producto
+      AND cantidad_actual >= p_cantidad;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION
+            'Stock insuficiente o inventario no encontrado en la bodega';
+    END IF;
+
+    INSERT INTO movimiento (tipo_movimiento, cantidad, id_bodega, id_usuario, id_producto)
+    VALUES ('SALIDA', p_cantidad, p_id_bodega, p_id_usuario, p_id_producto)
+    RETURNING id_movimiento INTO p_id_movimiento;
+END;
+$procedure$
+
+
+=== def_sp_salida_perecedero ===
+CREATE OR REPLACE PROCEDURE inventario.sp_salida_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer)
+ LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    v_restante integer;
+    v_tomar integer;
+    v_stock_lotes integer;
+    r_lote RECORD;
+    v_id_mov integer;
+BEGIN
+    PERFORM fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad);
+
+    PERFORM 1
+    FROM bodega
+    WHERE id_bodega = p_id_bodega
+    FOR UPDATE;
+
+    PERFORM fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad);
+
+    IF NOT EXISTS (
+        SELECT 1 FROM perecedero WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es perecedero';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM no_perecedero WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no es perecedero';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM usuario
+        WHERE id_usuario = p_id_usuario
+          AND activo = TRUE
+    ) THEN
+        RAISE EXCEPTION 'El usuario no existe o esta inactivo';
+    END IF;
+
+    v_stock_lotes := fn_stock_lotes_vigentes(p_id_bodega, p_id_producto);
+
+    IF v_stock_lotes < p_cantidad THEN
+        RAISE EXCEPTION
+            'Sin lotes vigentes suficientes. Disponible en lotes: %, solicitado: %',
+            v_stock_lotes, p_cantidad;
+    END IF;
+
+    PERFORM 1
+    FROM inventario
+    WHERE id_bodega = p_id_bodega
+      AND id_producto = p_id_producto
+    FOR UPDATE;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM inventario
+        WHERE id_bodega = p_id_bodega
+          AND id_producto = p_id_producto
+          AND cantidad_actual >= p_cantidad
+    ) THEN
+        RAISE EXCEPTION 'Inventario inconsistente o stock insuficiente';
+    END IF;
+
+    v_restante := p_cantidad;
+    p_id_movimiento := NULL;
+
+    FOR r_lote IN
+        SELECT l.num_lote, l.cantidad_actual
+        FROM lote l
+        WHERE l.id_bodega = p_id_bodega
+          AND l.id_producto = p_id_producto
+          AND l.cantidad_actual > 0
+          AND l.fech_vencimiento > CURRENT_DATE
+        ORDER BY l.fech_vencimiento ASC, l.num_lote ASC
+        FOR UPDATE
+    LOOP
+        EXIT WHEN v_restante <= 0;
+
+        v_tomar := LEAST(v_restante, r_lote.cantidad_actual);
+
+        UPDATE lote
+        SET cantidad_actual = cantidad_actual - v_tomar
+        WHERE num_lote = r_lote.num_lote
+          AND id_bodega = p_id_bodega
+          AND id_producto = p_id_producto
+          AND cantidad_actual >= v_tomar;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Cantidad insuficiente en el lote %', r_lote.num_lote;
+        END IF;
+
+        INSERT INTO movimiento (
+            tipo_movimiento, cantidad, id_bodega, id_usuario, id_producto, num_lote
+        ) VALUES (
+            'SALIDA', v_tomar, p_id_bodega, p_id_usuario, p_id_producto, r_lote.num_lote
+        ) RETURNING id_movimiento INTO v_id_mov;
+
+        IF p_id_movimiento IS NULL THEN
+            p_id_movimiento := v_id_mov;
+        END IF;
+
+        v_restante := v_restante - v_tomar;
+    END LOOP;
+
+    IF v_restante > 0 THEN
+        RAISE EXCEPTION
+            'No fue posible completar la salida. Faltan % unidades en lotes vigentes',
+            v_restante;
+    END IF;
+
+    UPDATE inventario
+    SET cantidad_actual = cantidad_actual - p_cantidad
+    WHERE id_bodega = p_id_bodega
+      AND id_producto = p_id_producto
+      AND cantidad_actual >= p_cantidad;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Inventario insuficiente al registrar la salida';
+    END IF;
+END;
+$procedure$
+
+
+=== def_fn_validar_salida ===
+CREATE OR REPLACE FUNCTION inventario.fn_validar_salida(p_id_bodega integer, p_id_producto integer, p_cantidad integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_stock integer;
+BEGIN
+    IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
+        RAISE EXCEPTION 'La cantidad debe ser mayor que cero';
+    END IF;
+
+    IF p_id_bodega IS NULL THEN
+        RAISE EXCEPTION 'La bodega no existe';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM bodega WHERE id_bodega = p_id_bodega
+    ) THEN
+        RAISE EXCEPTION 'La bodega no existe';
+    END IF;
+
+    IF p_id_producto IS NULL THEN
+        RAISE EXCEPTION 'El producto no existe';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM producto WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto no existe';
+    END IF;
+
+    v_stock := fn_consultar_stock_bodega(p_id_bodega, p_id_producto);
+
+    IF v_stock < p_cantidad THEN
+        RAISE EXCEPTION
+            'Stock insuficiente. Disponible: %, solicitado: %',
+            v_stock, p_cantidad;
+    END IF;
+
+    RETURN TRUE;
+END;
+$function$
+
+
+=== def_fn_stock_lotes_vigentes ===
+CREATE OR REPLACE FUNCTION inventario.fn_stock_lotes_vigentes(p_id_bodega integer, p_id_producto integer)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE
+AS $function$
+    SELECT COALESCE(SUM(l.cantidad_actual), 0)::integer
+    FROM lote l
+    WHERE l.id_bodega = p_id_bodega
+      AND l.id_producto = p_id_producto
+      AND l.cantidad_actual > 0
+      AND l.fech_vencimiento > CURRENT_DATE;
+$function$
+
+
+=== permisos_movimiento_rol ===
+rol	accion	recurso
+ADMINISTRADOR	ACCEDER	inventario
+ADMINISTRADOR	DELETE	inventario
+ADMINISTRADOR	INSERT	inventario
+ADMINISTRADOR	SELECT	inventario
+ADMINISTRADOR	UPDATE	inventario
+ADMINISTRADOR	ACCEDER	lote
+ADMINISTRADOR	DELETE	lote
+ADMINISTRADOR	INSERT	lote
+ADMINISTRADOR	SELECT	lote
+ADMINISTRADOR	UPDATE	lote
+ADMINISTRADOR	ACCEDER	movimiento
+ADMINISTRADOR	DELETE	movimiento
+ADMINISTRADOR	INSERT	movimiento
+ADMINISTRADOR	SELECT	movimiento
+ADMINISTRADOR	UPDATE	movimiento
+OPERATIVO	ACCEDER	inventario
+OPERATIVO	SELECT	inventario
+OPERATIVO	ACCEDER	lote
+OPERATIVO	SELECT	lote
+OPERATIVO	ACCEDER	movimiento
+OPERATIVO	INSERT	movimiento
+OPERATIVO	SELECT	movimiento
+
+=== bitacora_conteo ===
+filas
+15
+
+=== movimiento_tipos_en_datos ===
+tipo_movimiento	n
+BAJA_DAÑO	4
+ENTRADA	17
+SALIDA	8
+TRASLADO	9
+
+=== rls ===
+schemaname	tablename	policyname	permissive	roles	cmd	qual
+
+=== grants_salida ===
+grantee	privilege_type
+PUBLIC	EXECUTE
+PUBLIC	EXECUTE
+inventario_dev3	EXECUTE
+inventario_dev3	EXECUTE
+
+=== usuario_rol_muestra ===
+id_usuario	rol	activo	bloqueado
+1	ADMINISTRADOR	True	False
+2	OPERATIVO	True	False
+3	OPERATIVO	True	False
+4	OPERATIVO	True	False
+5	ADMINISTRADOR	True	False
+
+=== bitacora_muestra_redactada ===
+id_bitacora	id_usuario	fecha_hora	tipo_accion	tabla_afectada	descripcion
+15	1	2026-11-11 00:08:23.439539+00:00	TRASLADO	movimiento_bodega	Traslado de 25 unidades del producto 11 desde bodega 3 hacia bodega 2
+14	1	2026-11-10 05:44:20.478249+00:00	TRASLADO	movimiento_bodega	Traslado de 5 unidades del producto 1 desde bodega 2 hacia bodega 1
+13	1	2026-11-10 05:38:23.967600+00:00	TRASLADO	movimiento_bodega	Traslado de 5 unidades del producto 16 desde bodega 1 hacia bodega 2
+12	1	2026-11-01 02:30:34.335893+00:00	INSERT	producto	Carga de prueba del producto AGF-0012
+11	1	2026-11-01 02:30:34.335893+00:00	INSERT	producto	Carga de prueba del producto AGF-0011

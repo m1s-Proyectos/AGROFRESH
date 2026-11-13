@@ -1,0 +1,65 @@
+=== CATALOGO PG (inventario) ===
+CAT FUNCTION fn_consultar_stock_bodega(p_id_bodega integer, p_id_producto integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT FUNCTION fn_lotes_disponibles(p_id_bodega integer, p_id_producto integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT FUNCTION fn_reporte_movimientos(p_desde date, p_hasta date, p_bodega integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT FUNCTION fn_stock_lotes_vigentes(p_id_bodega integer, p_id_producto integer) migracion_ref=MIG-12.5A_sp_salidas.sql
+CAT FUNCTION fn_tipo_producto(p_id_producto integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT FUNCTION fn_validar_motivo_baja(p_motivo text) migracion_ref=MIG-12.5B.1_sp_baja_dano.sql
+CAT FUNCTION fn_validar_recepcion(p_id_compra integer, p_id_bodega integer, p_id_producto integer, p_cantidad integer, p_id_usuario integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT FUNCTION fn_validar_salida(p_id_bodega integer, p_id_producto integer, p_cantidad integer) migracion_ref=MIG-12.5A_sp_salidas.sql
+CAT FUNCTION fn_validar_traslado(p_id_bodega_origen integer, p_id_bodega_destino integer, p_id_producto integer, p_cantidad integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT PROCEDURE sp_baja_dano_no_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, IN p_motivo text, OUT p_id_movimiento integer) migracion_ref=MIG-12.5B.1_sp_baja_dano.sql
+CAT PROCEDURE sp_baja_dano_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer, IN p_motivo text, OUT p_id_movimiento integer) migracion_ref=MIG-12.5B.1_sp_baja_dano.sql
+CAT PROCEDURE sp_baja_vencimiento(IN p_id_bodega integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer, IN p_motivo text, OUT p_id_movimiento integer) migracion_ref=MIG-12.5B.2_sp_baja_vencimiento.sql
+CAT PROCEDURE sp_crear_compra(IN p_id_proveedor integer, INOUT p_id_compra integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT PROCEDURE sp_recibir_no_perecedero(IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT PROCEDURE sp_recibir_perecedero(IN p_id_compra integer, IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_fecha_vencimiento date, IN p_id_usuario integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT PROCEDURE sp_salida_no_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer) migracion_ref=MIG-12.5A_sp_salidas.sql
+CAT PROCEDURE sp_salida_perecedero(IN p_id_bodega integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer, OUT p_id_movimiento integer) migracion_ref=MIG-12.5A_sp_salidas.sql
+CAT PROCEDURE sp_trasladar_no_perecedero(IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_cantidad integer, IN p_id_usuario integer) migracion_ref=PRE-EXISTENTE/OTRO
+CAT PROCEDURE sp_trasladar_perecedero(IN p_id_bodega_origen integer, IN p_id_bodega_destino integer, IN p_id_producto integer, IN p_num_lote integer, IN p_cantidad integer, IN p_id_usuario integer) migracion_ref=PRE-EXISTENTE/OTRO
+USUARIOS admin=5 oper=3
+=== A ENTRADAS ===
+OK A01_entrada_np_valida
+OK A02_entrada_cero (rechazado)
+OK A03_entrada_per_valida
+=== B/C SALIDAS Y FEFO ===
+OK B01_salida_np
+OK B02_salida_np_insuf (rechazado)
+OK C01_fefo_multilote_22
+OK C02_excluye_vencidos (rechazado)
+=== D BAJAS (smoke) ===
+OK D01_baja_np_admin_y_oper_rechazado
+OK D02_bitacora_np
+=== SECUENCIAS ===
+OK SEQ1_entrada_salida
+OK SEQ2_entrada_baja_dano
+OK SEQ3_fefo_luego_baja
+OK SEQ4_baja_vencimiento_post_setup
+=== ROLLBACK ===
+OK ROLL_salida_insuf_sin_parcial
+TX funcional rollback global
+CONC_A S1=True S2=True det=commit|commit
+OK CONC_A sin_negativos
+CONC_B S1=False S2=True
+OK CONC_B exclusión mutua lote=18 inv=18
+CONC_C bajas_distintas S1=True S2=False
+OK CONC_C
+CONC_E S1=True S2=False stock=3
+OK CONC_E_sin_negativos_np
+OK SEC_operativo_salida_np
+=== RESTAURACION ===
+OK RESTAURACION_completa
+=== MATRIZ COBERTURA (resumen) ===
+COV sp_baja_dano_no_perecedero: catalogo=SI prueba_integral=D/CONC
+COV sp_baja_dano_perecedero: catalogo=SI prueba_integral=D/CONC
+COV sp_baja_vencimiento: catalogo=SI prueba_integral=SEQ/CONC
+COV sp_crear_compra: catalogo=SI prueba_integral=A/SEQ
+COV sp_recibir_no_perecedero: catalogo=SI prueba_integral=A
+COV sp_recibir_perecedero: catalogo=SI prueba_integral=A
+COV sp_salida_no_perecedero: catalogo=SI prueba_integral=B/CONC
+COV sp_salida_perecedero: catalogo=SI prueba_integral=B/C/CONC
+COV sp_trasladar_no_perecedero: catalogo=SI prueba_integral=PENDIENTE_12.5C
+COV sp_trasladar_perecedero: catalogo=SI prueba_integral=PENDIENTE_12.5C
+=== FIN failed=0 ===
+failed=0

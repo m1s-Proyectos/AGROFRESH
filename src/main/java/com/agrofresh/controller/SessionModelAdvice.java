@@ -37,6 +37,22 @@ public class SessionModelAdvice {
         return new SesionVista(username, nombre, rol, fecha);
     }
 
+    @ModelAttribute("puedeRegistrarSalida")
+    public boolean puedeRegistrarSalida() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return permisos.puede(auth, "movimiento", "INSERT");
+    }
+
+    @ModelAttribute("esAdministrador")
+    public boolean esAdministrador() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
     @ModelAttribute("accesos")
     public Map<String, Boolean> accesos() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
