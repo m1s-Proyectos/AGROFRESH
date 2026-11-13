@@ -1,0 +1,23 @@
+=== Escenario A: no perecedero 30 / dos salidas de 20 ===
+Producto=17 bodega=1 stock_origen=92
+S1 ok=True detail=id_movimiento=57
+S2 ok=False detail=RaiseException: Stock insuficiente. Disponible: 10, solicitado: 20
+CONTEXT:  PL/pgSQL function fn_validar_salida(integer,integer,integer) line 32 at RAISE
+SQL statement "SELECT fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad)"
+PL/pgSQL function sp_salida_no_perecedero(integer,integer,integer,integer) line 10 at PERFORM
+
+OK A stock_final=10 movimientos_nuevos=[(57, 20)]
+Restaurado no perecedero stock=92
+=== Escenario B: perecedero FEFO concurrente ===
+B S1 ok=True detail=id_movimiento=58
+B S2 ok=False detail=RaiseException: Stock insuficiente. Disponible: 16, solicitado: 20
+CONTEXT:  PL/pgSQL function fn_validar_salida(integer,integer,integer) line 32 at RAISE
+SQL statement "SELECT fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad)"
+PL/pgSQL function sp_salida_perecedero(integer,integer,integer,integer) line 16 at PERFORM
+
+OK B inv=16 lotes=[(99820, 0), (99821, 16)] movs=[(58, 99820, 18), (59, 99821, 2)]
+=== Escenario C: rollback ante error (misma conexión) ===
+OK C rechazo esperado: RaiseException
+OK C stock=30 sin movimientos nuevos
+Evidencia código desplegado: bodega_FOR_UPDATE=True inventario_FOR_UPDATE=True
+failed=0

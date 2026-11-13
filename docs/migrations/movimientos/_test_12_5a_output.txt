@@ -1,0 +1,12 @@
+fixtures usuario=3 np=(28, 3, 147) per=(1, 1)
+OK no_perecedero_salida_ok
+OK no_perecedero_stock_insuficiente (rechazado)
+OK cantidad_cero (rechazado)
+OK cantidad_negativa (rechazado)
+OK producto_invalido (rechazado)
+OK bodega_invalida (rechazado)
+OK perecedero_salida_fefo
+OK perecedero_sin_lotes_vigentes_suficientes (rechazado)
+FEFO_DEMO lotes_after=[(99901, 0), (99902, 5), (99903, 30)] movs=[(99901, 10), (99902, 15)]
+OK fefo_tres_lotes_distribucion_25
+failed=0

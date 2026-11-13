@@ -1,0 +1,187 @@
+=== Sesion ===
+db	db_user	cs
+postgres	inventario_dev3	inventario
+
+=== search_path ===
+search_path
+inventario, public
+
+=== Tablas modulo ===
+table_name
+catalogo
+categoria
+detalle_compra
+inventario
+lote
+movimiento
+no_perecedero
+perecedero
+producto
+
+=== Columnas producto/perecedero/no_perecedero/categoria ===
+table_name	column_name	data_type	udt_name	is_nullable	character_maximum_length	numeric_precision	numeric_scale	is_identity
+categoria	id_categoria	integer	int4	NO		32	0	YES
+categoria	nombre	character varying	varchar	NO	150			NO
+categoria	descripcion	character varying	varchar	YES	200			NO
+no_perecedero	id_producto	integer	int4	NO		32	0	NO
+no_perecedero	fech_fabricacion	date	date	NO				NO
+no_perecedero	vida_util_anaquel	integer	int4	NO		32	0	NO
+perecedero	id_producto	integer	int4	NO		32	0	NO
+perecedero	temp_recomendad	numeric	numeric	NO		5	2	NO
+perecedero	vida_util	integer	int4	NO		32	0	NO
+producto	id_producto	integer	int4	NO		32	0	YES
+producto	id_categoria	integer	int4	NO		32	0	NO
+producto	codigo_interno	character varying	varchar	NO	20			NO
+producto	nombre	character varying	varchar	NO	150			NO
+producto	unidad_medida	character varying	varchar	NO	20			NO
+
+=== Restricciones ===
+table_name	constraint_name	tipo	definicion
+catalogo	ck_catalogo_calificacion	CHECK	CHECK (calificacion >= 1::numeric AND calificacion <= 5::numeric)
+catalogo	ck_catalogo_entrega	CHECK	CHECK (tiempo_entrega_dias >= 0)
+catalogo	ck_catalogo_precio	CHECK	CHECK (precio_vigente >= 0::numeric)
+catalogo	fk_catalogo_ofrece_proveedo	FK	FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor) ON UPDATE RESTRICT ON DELETE RESTRICT
+catalogo	fk_catalogo_se_muestr_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+catalogo	pk_catalogo	PK	PRIMARY KEY (id_producto, id_proveedor)
+categoria	pk_categoria	PK	PRIMARY KEY (id_categoria)
+categoria	uq_categoria_nombre	UNIQUE	UNIQUE (nombre)
+detalle_compra	ck_detalle_cantidad	CHECK	CHECK (cantidad > 0)
+detalle_compra	ck_detalle_precio	CHECK	CHECK (precio_unitario >= 0::numeric)
+detalle_compra	ck_detalle_subtotal	CHECK	CHECK (subtotal = (cantidad::numeric * precio_unitario))
+detalle_compra	fk_detalle__incluye_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+detalle_compra	fk_detalle__tiene_compra	FK	FOREIGN KEY (id_compra) REFERENCES compra(id_compra) ON UPDATE RESTRICT ON DELETE RESTRICT
+detalle_compra	pk_detalle_compra	PK	PRIMARY KEY (id_detalle_compra)
+detalle_compra	uq_detalle_compra_prod	UNIQUE	UNIQUE (id_compra, id_producto)
+inventario	ck_inventario_cantidad	CHECK	CHECK (cantidad_actual >= 0)
+inventario	ck_inventario_stock	CHECK	CHECK (stock_minimo >= 0)
+inventario	fk_inventar_comprende_bodega	FK	FOREIGN KEY (id_bodega) REFERENCES bodega(id_bodega) ON UPDATE RESTRICT ON DELETE RESTRICT
+inventario	fk_inventar_esta_aloj_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+inventario	pk_inventario	PK	PRIMARY KEY (id_bodega, id_producto)
+lote	ck_lote_actual	CHECK	CHECK (cantidad_actual >= 0)
+lote	ck_lote_cantidad	CHECK	CHECK (cantidad_recibida > 0)
+lote	ck_lote_num	CHECK	CHECK (num_lote > 0)
+lote	fk_lote_abarca_perecede	FK	FOREIGN KEY (id_producto) REFERENCES perecedero(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+lote	fk_lote_provee_proveedo	FK	FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor) ON UPDATE RESTRICT ON DELETE RESTRICT
+lote	fk_lote_se_aloja_bodega	FK	FOREIGN KEY (id_bodega) REFERENCES bodega(id_bodega) ON UPDATE RESTRICT ON DELETE RESTRICT
+lote	pk_lote	PK	PRIMARY KEY (num_lote, id_bodega, id_producto)
+movimiento	ck_movimiento_cantidad	CHECK	CHECK (cantidad > 0)
+movimiento	ck_movimiento_tipo	CHECK	CHECK (tipo_movimiento::text = ANY (ARRAY['ENTRADA'::character varying, 'SALIDA'::character varying, 'TRASLADO'::character varying, 'BAJA_VENCIMIENTO'::character varying, 'BAJA_DAÑO'::character varying]::text[]))
+movimiento	fk_movimien_ejecuta_usuario	FK	FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON UPDATE RESTRICT ON DELETE RESTRICT
+movimiento	fk_movimien_origen_bodega	FK	FOREIGN KEY (id_bodega) REFERENCES bodega(id_bodega) ON UPDATE RESTRICT ON DELETE RESTRICT
+movimiento	fk_movimien_se_ejecut_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+movimiento	fk_movimiento_afecta_lote	FK	FOREIGN KEY (num_lote, id_bodega, id_producto) REFERENCES lote(num_lote, id_bodega, id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+movimiento	pk_movimiento	PK	PRIMARY KEY (id_movimiento)
+no_perecedero	ck_no_perecedero_vida	CHECK	CHECK (vida_util_anaquel > 0)
+no_perecedero	fk_no_perec_es_un_nop_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+no_perecedero	pk_no_perecedero	PK	PRIMARY KEY (id_producto)
+perecedero	ck_perecedero_vida	CHECK	CHECK (vida_util > 0)
+perecedero	fk_perecede_es_un_per_producto	FK	FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON UPDATE RESTRICT ON DELETE RESTRICT
+perecedero	pk_perecedero	PK	PRIMARY KEY (id_producto)
+producto	fk_producto_categoria	FK	FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria) ON UPDATE RESTRICT ON DELETE RESTRICT
+producto	pk_producto	PK	PRIMARY KEY (id_producto)
+producto	uq_producto_codigo	UNIQUE	UNIQUE (codigo_interno)
+
+=== Indices ===
+tablename	indexname
+catalogo	ofrece_fk
+catalogo	pk_catalogo
+catalogo	se_muestra_en_fk
+categoria	pk_categoria
+categoria	uq_categoria_nombre
+detalle_compra	incluye_fk
+detalle_compra	pk_detalle_compra
+detalle_compra	tiene_fk
+detalle_compra	uq_detalle_compra_prod
+inventario	comprende_fk
+inventario	esta_alojado_en_fk
+inventario	pk_inventario
+lote	abarca_fk
+lote	pk_lote
+lote	provee_fk
+lote	se_aloja_fk
+movimiento	afecta_lote_fk
+movimiento	ejecuta_fk
+movimiento	origen_fk
+movimiento	pk_movimiento
+movimiento	se_ejecuta_sobre_fk
+no_perecedero	pk_no_perecedero
+perecedero	pk_perecedero
+producto	pertenece_a_categoria_fk
+producto	pk_producto
+producto	uq_producto_codigo
+
+=== Secuencia id_producto ===
+seq
+inventario.producto_id_producto_seq
+
+=== EXISTS sin prefijo (search_path sesion) ===
+lote	movimiento	inventario	detalle_compra	catalogo
+False	False	False	False	False
+
+=== EXISTS con prefijo inventario. ===
+lote	inventario
+False	False
+
+=== search_path public ===
+(ok, sin conjunto de resultados)
+
+=== EXISTS sin prefijo tras SET public ===
+ERROR: UndefinedTable: relation "lote" does not exist
+LINE 1: SELECT (SELECT EXISTS(SELECT 1 FROM lote WHERE id_producto =...
+                                            ^
+
+
+=== restaurar search_path ===
+(ok, sin conjunto de resultados)
+
+=== cnt_producto ===
+n
+30
+
+=== cnt_perecedero ===
+n
+15
+
+=== cnt_no_perecedero ===
+n
+15
+
+=== productos_sin_clasificacion ===
+n
+0
+
+=== productos_con_ambas_clasificaciones ===
+n
+0
+
+=== perecedero_huerfano ===
+n
+0
+
+=== no_perecedero_huerfano ===
+n
+0
+
+=== producto_categoria_inexistente ===
+n
+0
+
+=== productos_con_lote ===
+n
+15
+
+=== productos_con_movimiento ===
+n
+26
+
+=== productos_en_inventario ===
+n
+30
+
+=== productos_en_detalle_compra ===
+n
+30
+
+=== productos_en_catalogo ===
+n
+30

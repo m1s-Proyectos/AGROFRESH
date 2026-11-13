@@ -205,6 +205,9 @@ modalNuevo.querySelector('form').addEventListener('submit', event => {
     claveNueva.reportValidity();
   }
 });
+  <div th:replace="~{layout/footer :: footer}"></div>
+</main></div></div>
+<script>
 const buscador = document.getElementById('buscarUsuarios');
 const filas = Array.from(document.querySelectorAll('#filasUsuarios tr'));
 buscador.addEventListener('input', () => {
