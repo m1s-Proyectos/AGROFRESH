@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#163b2b">
+    <title>Detalle del movimiento | AGROFRESH</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
+    <link rel="stylesheet" th:href="@{/css/categorias.css(v='20261110cat1')}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css(v='20261110inv3')}">
+    <link rel="stylesheet" th:href="@{/css/traslados.css}">
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/header :: header}"></div>
+    <div class="workspace">
+        <div th:replace="~{layout/sidebar :: sidebar('movimientos')}"></div>
+        <main class="main-content traslado-main">
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTARIO / DETALLE</div>
+            <section class="traslado-intro categorias-intro">
+                <div>
+                    <p class="date-label">MOVIMIENTO #<span th:text="${movimiento.idMovimiento()}">0</span></p>
+                    <h1>Detalle del <em>movimiento.</em></h1>
+                    <p>Información registrada en la base de datos para este movimiento (solo consulta).</p>
+                </div>
+                <div class="traslado-emblem" aria-hidden="true">◎</div>
+            </section>
+
+            <section class="categoria-detail-panel" aria-labelledby="movimiento-detail-title">
+                <div th:replace="~{fragments/movimientos-submenu :: submenu('consultar')}"></div>
+                <div class="panel-topline">
+                    <div>
+                        <span class="section-kicker">MOVIMIENTO</span>
+                        <h2 id="movimiento-detail-title">
+                            <span th:switch="${movimiento.tipoMovimiento()}">
+                                <span th:case="'ENTRADA'">Entrada</span>
+                                <span th:case="'SALIDA'">Salida</span>
+                                <span th:case="'TRASLADO'">Traslado</span>
+                                <span th:case="'BAJA_VENCIMIENTO'">Baja por vencimiento</span>
+                                <span th:case="'BAJA_DAÑO'">Baja por daño</span>
+                                <span th:case="*" th:text="${movimiento.tipoMovimiento()}">—</span>
+                            </span>
+                        </h2>
+                    </div>
+                </div>
+                <dl class="categoria-details">
+                    <dt>Fecha y hora</dt>
+                    <dd th:text="${#temporals.format(movimiento.fecha(), 'dd/MM/yyyy HH:mm')}">—</dd>
+                    <dt>Cantidad</dt>
+                    <dd th:text="${movimiento.cantidad()}">0</dd>
+                    <dt>Producto</dt>
+                    <dd th:if="${movimiento.idProducto() != null}"
+                        th:text="${movimiento.codigoProducto() + ' — ' + movimiento.nombreProducto()}">—</dd>
+                    <dd th:if="${movimiento.idProducto() == null}">—</dd>
+                    <dt>Bodega origen</dt>
+                    <dd th:text="${movimiento.nombreBodegaOrigen()}">—</dd>
+                    <dt>Bodega destino</dt>
+                    <dd th:text="${movimiento.nombreBodegaDestino() != null ? movimiento.nombreBodegaDestino() : '—'}">—</dd>
+                    <dt>Lote</dt>
+                    <dd th:text="${movimiento.numLote() != null ? movimiento.numLote() : '—'}">—</dd>
+                    <dt>Fecha de vencimiento del lote</dt>
+                    <dd th:text="${movimiento.fechaVencimientoLote() != null ? #temporals.format(movimiento.fechaVencimientoLote(), 'dd/MM/yyyy') : '—'}">—</dd>
+                    <dt>Responsable</dt>
+                    <dd th:text="${movimiento.nombreResponsable() + (movimiento.apellidoResponsable() != null ? ' ' + movimiento.apellidoResponsable() : '')}">—</dd>
+                </dl>
+
+                <div th:if="${movimiento.tipoMovimiento() == 'ENTRADA' and movimiento.vinculoCompra()}" class="categoria-detail-panel" style="margin-top:1.5rem;">
+                    <h3 class="h5">Recepción por compra</h3>
+                    <dl class="categoria-details">
+                        <dt>Compra</dt>
+                        <dd th:text="${movimiento.idCompra() != null ? ('#' + movimiento.idCompra()) : '—'}">—</dd>
+                        <dt>Fecha de compra</dt>
+                        <dd th:text="${movimiento.fechaCompra() != null ? #temporals.format(movimiento.fechaCompra(), 'dd/MM/yyyy') : '—'}">—</dd>
+                        <dt>Proveedor</dt>
+                        <dd th:text="${movimiento.nombreProveedor() != null ? movimiento.nombreProveedor() : '—'}">—</dd>
+                    </dl>
+                    <p class="inventario-nota">Para registrar nuevas entradas utiliza el módulo <a th:href="@{/compras}">Recepción / Compras</a>.</p>
+                </div>
+
+                <div th:if="${movimiento.tipoMovimiento() == 'TRASLADO'}" class="categoria-detail-panel" style="margin-top:1.5rem;">
+                    <p class="inventario-nota">Este traslado fue registrado mediante el módulo <a th:href="@{/traslados}">Traslados</a>.</p>
+                </div>
+
+                <div th:if="${movimiento.tipoMovimiento() == 'SALIDA'}" class="categoria-detail-panel" style="margin-top:1.5rem;">
+                    <h3 class="h5">Salida de inventario</h3>
+                    <p class="inventario-nota">Operación registrada con descuento de existencias en la bodega de origen.
+                        Si fue una salida perecedera con varios lotes, pueden existir otros movimientos relacionados en el historial (misma fecha y producto).</p>
+                </div>
+
+                <div th:if="${movimiento.tipoMovimiento() == 'BAJA_DAÑO' or movimiento.tipoMovimiento() == 'BAJA_VENCIMIENTO'}"
+                     class="categoria-detail-panel" style="margin-top:1.5rem;">
+                    <h3 class="h5">Baja administrativa</h3>
+                    <dl class="categoria-details" th:if="${movimiento.descripcionBitacora() != null}">
+                        <dt>Registro en bitácora</dt>
+                        <dd th:text="${movimiento.descripcionBitacora()}">—</dd>
+                    </dl>
+                    <p class="inventario-nota" th:if="${movimiento.descripcionBitacora() == null}">
+                        El motivo detallado puede consultarse en la bitácora del sistema si está disponible para este movimiento.
+                    </p>
+                </div>
+
+                <div class="categoria-form-actions">
+                    <a class="categoria-secondary-action" th:href="@{/movimientos}">Volver al historial</a>
+                </div>
+            </section>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

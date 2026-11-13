@@ -1,0 +1,18 @@
+fixtures admin=1 operativo=2
+OK 01_np_baja_valida
+OK 03_np_stock_insuficiente (rechazado)
+OK 13_operativo_rechazado_np (rechazado)
+OK 14_admin_aceptado_np
+OK 04_cantidad_cero (rechazado)
+OK 05_cantidad_negativa (rechazado)
+OK 06_producto_inexistente (rechazado)
+OK 07_bodega_inexistente (rechazado)
+OK 01_per_baja_valida_vigente
+OK 08_lote_vigente_dano
+OK 09_lote_vencido_dano
+OK 13_operativo_rechazado_per (rechazado)
+OK 11_motivo_bitacora
+OK 12_rollback_motivo_vacio
+OK 05_lote_inexistente (rechazado)
+Restaurado savepoint lotes 99871/99872 (sin cambios persistentes)
+failed=0

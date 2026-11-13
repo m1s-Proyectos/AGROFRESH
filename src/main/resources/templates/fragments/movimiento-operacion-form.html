@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="formulario(titulo, descripcion, kicker, emblem, active, endpoint, tipoProducto, loteModo, conMotivo, notaFefo, confirmLabel)">
+    <div class="traslado-layout">
+        <section class="traslado-panel" aria-labelledby="mov-op-title">
+            <div th:replace="~{fragments/movimientos-submenu :: submenu(${active})}"></div>
+            <div class="panel-topline">
+                <div>
+                    <span class="section-kicker" th:text="${kicker}">OPERACIÓN</span>
+                    <h2 id="mov-op-title" th:text="${titulo}">Registrar</h2>
+                </div>
+            </div>
+            <p class="inventario-nota" th:text="${descripcion}">Descripción</p>
+            <p class="inventario-nota text-warning-emphasis" th:if="${notaFefo}">
+                La salida perecedera aplica FEFO en PostgreSQL y puede generar varios movimientos.
+                El sistema devuelve un identificador de referencia del primer movimiento; revisa el historial filtrando por tipo «Salida» para ver el detalle completo.
+            </p>
+            <form id="form-movimiento"
+                  th:data-endpoint="${endpoint}"
+                  th:data-tipo="${tipoProducto}"
+                  th:data-lote-mod="${loteModo}"
+                  th:data-motivo="${conMotivo}"
+                  th:data-permitido="${puedeRegistrarSalida or esAdministrador}">
+                <p id="catalogo-estado" class="catalogo-estado" role="status">Cargando bodegas…</p>
+                <div class="traslado-grid">
+                    <div class="traslado-field">
+                        <label for="bodega">Bodega</label>
+                        <select id="bodega" name="bodega" required disabled>
+                            <option value="">Selecciona una bodega</option>
+                        </select>
+                    </div>
+                    <div class="traslado-field">
+                        <label for="producto">Producto</label>
+                        <select id="producto" name="producto" required disabled>
+                            <option value="">Selecciona primero una bodega</option>
+                        </select>
+                    </div>
+                    <div class="traslado-field wide" id="lote-field" hidden>
+                        <label for="lote">Lote</label>
+                        <select id="lote" name="lote" disabled>
+                            <option value="">Selecciona un lote</option>
+                        </select>
+                        <small id="lote-ayuda">Selecciona producto y bodega para cargar lotes.</small>
+                    </div>
+                    <div class="traslado-field wide" id="lotes-info" hidden>
+                        <p class="form-subtitle"><span>◇</span> Lotes vigentes (solo consulta)</p>
+                        <ul id="lotes-info-list" class="movimiento-lotes-info list-unstyled mb-0"></ul>
+                        <small>La salida no exige elegir lote; PostgreSQL distribuye las unidades.</small>
+                    </div>
+                    <div class="traslado-field wide" th:if="${conMotivo}">
+                        <label for="motivo">Motivo de la baja</label>
+                        <textarea id="motivo" name="motivo" class="form-control" rows="3" maxlength="500"
+                                  placeholder="Describe el motivo (obligatorio)" required disabled></textarea>
+                    </div>
+                    <div class="traslado-field wide">
+                        <label for="cantidad">Cantidad</label>
+                        <input id="cantidad" name="cantidad" type="number" min="1" step="1" required disabled
+                               placeholder="Unidades a registrar">
+                        <small id="disponible">Selecciona un producto para consultar existencias.</small>
+                    </div>
+                </div>
+                <div id="resultado-operacion" class="alert d-none" role="status" aria-live="polite"></div>
+                <div class="traslado-actions">
+                    <p>La operación se ejecuta en PostgreSQL con el usuario de tu sesión.</p>
+                    <button id="confirmar" type="submit" disabled th:text="${confirmLabel}">Confirmar</button>
+                    <a class="categoria-secondary-action" th:href="@{/movimientos}">Ver historial</a>
+                </div>
+            </form>
+        </section>
+        <aside class="traslado-aside">
+            <span class="section-kicker">MOVIMIENTOS</span>
+            <h2>Un registro,<br><em>trazabilidad.</em></h2>
+            <div class="transfer-graphic" aria-hidden="true" th:text="${emblem}">↓</div>
+            <p>Tras confirmar, puedes localizar los movimientos en el historial con filtros por tipo y producto.</p>
+            <div class="aside-divider"></div>
+            <p class="aside-tip"><span>✳</span> Los mensajes del servidor reflejan las validaciones de PostgreSQL.</p>
+            <a class="return-link" th:href="@{/movimientos}">← Volver al historial</a>
+        </aside>
+    </div>
+    <script th:src="@{/js/movimiento-operacion.js(v='20261110')}"></script>
+</section>
+</body>
+</html>

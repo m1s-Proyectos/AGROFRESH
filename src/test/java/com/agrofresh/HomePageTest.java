@@ -5,6 +5,7 @@ import com.agrofresh.dto.CategoriaForm;
 import com.agrofresh.security.PermisoService;
 import com.agrofresh.service.CategoriaService;
 import com.agrofresh.service.ProductoService;
+import com.agrofresh.service.MovimientoService;
 import com.agrofresh.service.ProveedorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,9 @@ class HomePageTest {
 
     @MockBean
     private ProveedorService proveedorService;
+
+    @MockBean
+    private MovimientoService movimientoService;
 
     @Test
     void loginPageIsPublic() throws Exception {
@@ -212,6 +216,17 @@ class HomePageTest {
         when(permisos.puede(any(), eq("proveedor"), eq("INSERT"))).thenReturn(true);
 
         mockMvc.perform(post("/proveedores/guardar"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ROLE_OPERADOR")
+    void movementHistoryRequiresAccessAndSelectPermissions() throws Exception {
+        when(permisos.cuentaHabilitada(any(Authentication.class))).thenReturn(true);
+        when(permisos.puede(any(), eq("movimiento"), eq("ACCEDER"))).thenReturn(true);
+        when(permisos.puede(any(), eq("movimiento"), eq("SELECT"))).thenReturn(false);
+
+        mockMvc.perform(get("/movimientos"))
                 .andExpect(status().isForbidden());
     }
 }
