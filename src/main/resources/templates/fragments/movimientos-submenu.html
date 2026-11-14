@@ -1,0 +1,25 @@
+<nav class="movimientos-submenu" th:fragment="submenu(active)" aria-label="Operaciones de movimientos">
+    <a class="movimientos-submenu-link" th:href="@{/movimientos}"
+       th:classappend="${active == 'historial' || active == 'consultar'} ? 'active' : ''">Consultar movimientos</a>
+    <a class="movimientos-submenu-link" th:href="@{/movimientos/registrar}"
+       th:classappend="${active == 'registrar'} ? 'active' : ''">Registrar operaciones</a>
+    <a class="movimientos-submenu-link" th:if="${accesos['compra']}" th:href="@{/compras}"
+       th:classappend="${active == 'entrada'} ? 'active' : ''">Registrar entrada</a>
+    <a class="movimientos-submenu-link" th:if="${puedeRegistrarSalida}"
+       th:href="@{/movimientos/salida/no-perecedero}"
+       th:classappend="${active == 'salida-np'} ? 'active' : ''">Salida no perecedera</a>
+    <a class="movimientos-submenu-link" th:if="${puedeRegistrarSalida}"
+       th:href="@{/movimientos/salida/perecedero}"
+       th:classappend="${active == 'salida-per'} ? 'active' : ''">Salida perecedera</a>
+    <a class="movimientos-submenu-link" th:if="${esAdministrador}"
+       th:href="@{/movimientos/baja/dano/no-perecedero}"
+       th:classappend="${active == 'baja-np'} ? 'active' : ''">Baja por daño (NP)</a>
+    <a class="movimientos-submenu-link" th:if="${esAdministrador}"
+       th:href="@{/movimientos/baja/dano/perecedero}"
+       th:classappend="${active == 'baja-per'} ? 'active' : ''">Baja por daño (PER)</a>
+    <a class="movimientos-submenu-link" th:if="${esAdministrador}"
+       th:href="@{/movimientos/baja/vencimiento}"
+       th:classappend="${active == 'baja-venc'} ? 'active' : ''">Baja por vencimiento</a>
+    <a class="movimientos-submenu-link" th:if="${accesos['traslado']}" th:href="@{/traslados}"
+       th:classappend="${active == 'traslados'} ? 'active' : ''">Traslados</a>
+</nav>

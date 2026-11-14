@@ -12,7 +12,12 @@ import com.agrofresh.dto.ProveedorListadoDto;
 import com.agrofresh.security.PermisoService;
 import com.agrofresh.service.CategoriaService;
 import com.agrofresh.service.ProductoService;
+import com.agrofresh.service.MovimientoService;
 import com.agrofresh.service.ProveedorService;
+import com.agrofresh.dto.MovimientoDetalleDto;
+import com.agrofresh.dto.MovimientoFiltro;
+import com.agrofresh.dto.MovimientoListadoDto;
+import java.time.OffsetDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +64,9 @@ class ModuleViewsTest {
     @MockBean
     private ProveedorService proveedorService;
 
+    @MockBean
+    private MovimientoService movimientoService;
+
     @BeforeEach
     void provideIsolatedReadFixtures() {
         when(permisos.cuentaHabilitada(any())).thenReturn(true);
@@ -103,6 +111,20 @@ class ModuleViewsTest {
                 .thenReturn(new ProveedorDetalleDto(
                         5, "Agro Distribución", null, "0614-000000-000-0",
                         "contacto@agro.test", "Km 10 carretera norte", "71234567", "Gravado"));
+        MovimientoFiltro filtroMovimientos = new MovimientoFiltro(null, null, null, null, null, 0, 50);
+        when(movimientoService.normalizarFiltro(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(filtroMovimientos);
+        when(movimientoService.contar(filtroMovimientos)).thenReturn(1L);
+        when(movimientoService.listar(filtroMovimientos)).thenReturn(List.of(new MovimientoListadoDto(
+                10, OffsetDateTime.parse("2026-03-01T08:00:00-06:00"), "TRASLADO", 4, null, 3,
+                "P-01", "Mango", 1, "Central", 2, "Norte", "Operador Uno", false)));
+        when(movimientoService.tiposDisponibles()).thenReturn(List.of("ENTRADA", "TRASLADO"));
+        when(movimientoService.bodegasParaFiltro()).thenReturn(List.of());
+        when(movimientoService.productosParaFiltro()).thenReturn(List.of());
+        when(movimientoService.consultar(10)).thenReturn(new MovimientoDetalleDto(
+                10, OffsetDateTime.parse("2026-03-01T08:00:00-06:00"), "TRASLADO", 4, null, null,
+                3, "P-01", "Mango", 1, "Central", 2, "Norte", "Operador", "Uno", false,
+                null, null, null, null));
     }
 
     @Test
@@ -394,6 +416,24 @@ class ModuleViewsTest {
                         .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Registrar proveedor"))))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                         .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Editar"))));
+    }
+
+    @Test
+    void rendersMovementsHistoryAndDetailViews() throws Exception {
+        mockMvc.perform(get("/movimientos"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("movimientos"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Historial de")));
+        mockMvc.perform(get("/movimientos/consultar/10"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("movimiento-detalle"));
+        mockMvc.perform(get("/movimientos/registrar"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("movimientos-registrar"));
+        mockMvc.perform(get("/movimientos/salida/no-perecedero"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("movimiento-salida-no-perecedero"));
     }
 
     @Test

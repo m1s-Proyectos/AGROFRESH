@@ -1,0 +1,17 @@
+fixtures admin=1 operativo=2
+OK 01_baja_valida_vencido
+OK 02_rechazo_lote_vigente (rechazado)
+OK 03_vencido_exactamente_hoy
+OK 04_cantidad_cero (rechazado)
+OK 05_cantidad_negativa (rechazado)
+OK 06_existencias_insuficientes (rechazado)
+OK 07_lote_inexistente (rechazado)
+OK 08_producto_inexistente (rechazado)
+OK 09_bodega_inexistente (rechazado)
+OK 10_operativo_rechazado (rechazado)
+OK 11_admin_aceptado
+OK 12_movimiento_y_13_bitacora
+OK 14_rollback_registro
+OK 15_consistencia_inventario_lote
+Restaurado savepoint lotes 99881-99883 (sin cambios persistentes)
+failed=0

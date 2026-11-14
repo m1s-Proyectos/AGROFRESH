@@ -1,0 +1,55 @@
+=== ENTORNO admin=5 operativo=3 ===
+=== A. Baja daño no perecedero ===
+OK A01_valida
+OK A02_insuficiente (rechazado)
+OK A03_cero (rechazado)
+OK A04_negativa (rechazado)
+OK A05_motivo_vacio (rechazado)
+OK A06_motivo_501 (rechazado)
+=== B. Baja daño perecedero ===
+OK B01_lote_vigente
+OK B02_lote_vencido
+OK B03_parcial
+OK B04_total_lote
+OK B05_lote_inexistente (rechazado)
+OK B06_lote_otro_producto (rechazado)
+OK B07_insuficiente (rechazado)
+=== C. Baja vencimiento ===
+OK C01_vencido
+OK C02_vencido_hoy
+OK C03_vigente_rechazo (rechazado)
+OK C04_parcial
+OK C05_total
+OK C06_insuficiente (rechazado)
+=== SEGURIDAD ===
+OK SEC_admin
+OK SEC_operativo (rechazado)
+OK SEC_inexistente (rechazado)
+OK SEC_inactivo_simulado (rechazado)
+OK SEC_bloqueado_simulado (rechazado)
+=== ROLLBACK ===
+OK ROLL_sin_parciales_motivo_vacio
+ROLLBACK conexión funcional (sin datos persistentes de suite savepoint)
+=== CONC A: dos bajas NP mismo inventario ===
+CONC_A S1 ok=True commit
+CONC_A S2 ok=False RaiseException: Stock insuficiente. Disponible: 10, solicitado: 15
+CONTEXT:  PL/pgSQL function fn_validar_salida(integer,integer,integer) line 32 at RAISE
+SQL statement "SELECT fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad)"
+PL/pgSQL function sp_baja_dano_no_perecedero(integer,integer,integer,integer,text) line 15 at PERFORM
+
+OK CONC_A uno gana stock=10 un_movimiento
+=== CONC B: dos bajas mismo lote perecedero ===
+CONC_B S1 ok=False; S2 ok=True
+OK CONC_B lote e inventario=6
+=== CONC C: daño vs vencimiento mismo lote vencido ===
+CONC_C outcomes=[WorkerOutcome(label='S2', ok=True, detail='ok'), WorkerOutcome(label='S1', ok=False, detail='Stock insuficiente. Disponible: 4, solicitado: 8\nCONTEXT:  PL/pgSQL function fn_validar_salida(integer,integer,integer) line 32 at RAISE\nSQL statement "SELECT fn_validar_salida(p_id_bodega, p_id_producto, p_cantidad)"\nPL/pgSQL function sp_baja_dano_perecedero(integer,integer,integer,integer,integer,text) line 20 at PERFORM\n')] lote_restante=4
+OK CONC_C exclusión mutua lote=4
+=== CONC D: suma > existencias ===
+CONC_D S1=False S2=True stock=4
+OK CONC_D sin doble descuento ni negativos
+=== RESTAURACIÓN ===
+RESTAURACION movs_conc_eliminados=4 resid_mov=0 resid_bit=0 np_stock=104
+OK RESTAURACION_sin_residuos_conc
+RESTAURACION finally ejecutada tras concurrencia
+=== RESUMEN failed=0 incidencias=0 ===
+failed=0

@@ -3,7 +3,6 @@ package com.agrofresh.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.core.Authentication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,13 +12,6 @@ import org.springframework.http.HttpStatus;
 public class ModuloController {
     private final JdbcTemplate jdbc;
     public ModuloController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
-
-    @GetMapping("/movimientos")
-    public String pendiente(jakarta.servlet.http.HttpServletRequest request, Model model) {
-        String modulo = request.getRequestURI().substring(1);
-        model.addAttribute("modulo", modulo);
-        return "modulo-pendiente";
-    }
 
     @GetMapping("/perfil")
     public String perfil(Authentication auth, Model model) {
