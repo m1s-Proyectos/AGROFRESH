@@ -54,6 +54,12 @@ public class SecurityConfig {
                     authentication.get() != null
                         && authentication.get().getAuthorities().stream()
                             .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/usuarios/nuevo")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "usuario", "INSERT")));
+            reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/usuarios/*/editar")
+                .access((authentication, request) -> new AuthorizationDecision(
+                    permisos.puede(authentication.get(), "usuario", "UPDATE")));
             reglas.requestMatchers(org.springframework.http.HttpMethod.POST, "/usuarios/*/estado", "/usuarios/*/bloqueo")
                 .access((authentication, request) -> new AuthorizationDecision(
                     permisos.puede(authentication.get(), "usuario", "UPDATE")));

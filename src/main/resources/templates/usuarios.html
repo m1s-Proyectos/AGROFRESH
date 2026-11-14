@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Usuarios | AGROFRESH</title><link rel="stylesheet" th:href="@{/css/agrofresh.css(v='20261110c')}">
-<link rel="stylesheet" th:href="@{/css/usuarios.css}"></head>
+<link rel="stylesheet" th:href="@{/css/usuarios.css(v='20261110usuarios4')}"></head>
 <body><div class="app-shell">
 <div th:replace="~{layout/header :: header}"></div>
 <div class="workspace"><div th:replace="~{layout/sidebar :: sidebar('usuarios')}"></div>
@@ -14,7 +14,7 @@
   <div class="usuarios-aviso error" th:if="${error}" th:text="${error}"></div>
   <section class="usuarios-panel">
     <div class="usuarios-panel-header"><div><p class="section-kicker">CUENTAS REGISTRADAS</p><h2>Usuarios del sistema</h2></div>
-    <label class="usuarios-buscar"><span>Buscar usuario</span><input id="buscarUsuarios" type="search" placeholder="Nombre, username o rol..." autocomplete="off"></label></div>
+    <div class="usuarios-herramientas"><button th:if="${puedeCrear}" type="button" class="usuarios-nuevo" id="abrirNuevo">+ Nuevo usuario</button><label class="usuarios-buscar"><span>Buscar usuario</span><input id="buscarUsuarios" type="search" placeholder="Nombre, username o rol..." autocomplete="off"></label></div></div>
     <div class="usuarios-scroll"><table class="usuarios-tabla"><thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody id="filasUsuarios">
       <tr th:each="u : ${usuarios}">
@@ -23,6 +23,7 @@
         <td><span class="estado" th:classappend="${!u.activo} ? 'estado-inactivo' : (${u.bloqueado} ? 'estado-bloqueado' : 'estado-activo')"
              th:text="${!u.activo} ? 'Inactivo' : (${u.bloqueado} ? 'Bloqueado' : 'Activo')">Activo</span></td>
         <td><div class="usuarios-acciones" th:if="${puedeEditar and u.username != sesion.username}">
+          <button type="button" class="usuarios-editar" th:attr="data-id=${u.id_usuario},data-nombre=${u.nombre},data-apellido=${u.apellido},data-correo=${u.correo},data-username=${u.username},data-rol=${u.id_rol}">Editar</button>
           <form th:action="@{/usuarios/{id}/estado(id=${u.id_usuario})}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="activo" th:value="${!u.activo}">
@@ -41,9 +42,170 @@
     <p id="sinResultados" hidden>No se encontraron usuarios con ese criterio.</p>
   </section>
   <p class="usuarios-nota">La baja impide el acceso sin borrar el registro. El bloqueo es independiente y requiere desbloqueo antes de iniciar sesión.</p>
+  <!-- Diálogos nativos: no necesitan Bootstrap ni bibliotecas externas. -->
+  <dialog id="modalNuevo" class="usuarios-modal" aria-labelledby="tituloNuevo" th:attr="data-reabrir=${nuevoDatos != null}">
+    <form method="post" th:action="@{/usuarios/nuevo}" class="usuarios-form">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="modal-cabecera"><div><p class="section-kicker">GESTIÓN DE ACCESOS</p><h2 id="tituloNuevo">Nuevo usuario</h2><p>Registra una cuenta y asigna sus permisos mediante el rol.</p></div><button type="button" class="modal-cerrar" data-cerrar aria-label="Cerrar">×</button></div>
+      <div class="modal-error" role="alert" th:if="${nuevoError}" th:text="${nuevoError}"></div>
+      <div class="usuarios-campos">
+        <label>Nombre <input name="nombre" maxlength="100" required autocomplete="given-name" placeholder="Ej. Ana" th:value="${nuevoDatos != null ? nuevoDatos.nombre : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label>Apellido <input name="apellido" maxlength="100" required autocomplete="family-name" placeholder="Ej. Rivera" th:value="${nuevoDatos != null ? nuevoDatos.apellido : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label>Nombre de usuario <input name="username" pattern="[A-Za-z0-9_.-]{3,50}" minlength="3" maxlength="50" required autocomplete="off" placeholder="Ej. ana_rivera" th:value="${nuevoDatos != null ? nuevoDatos.username : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label>Correo electrónico <input name="correo" type="email" maxlength="100" required autocomplete="email" placeholder="ana@ejemplo.com" th:value="${nuevoDatos != null ? nuevoDatos.correo : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label>Rol <select name="idRol" required><option th:each="r : ${roles}" th:value="${r.id_rol}" th:text="${r.nombre}" th:selected="${nuevoDatos != null ? r.id_rol == nuevoDatos.idRol : r.nombre == 'OPERATIVO'}">OPERATIVO</option></select></label>
+        <label class="campo-clave campo-ancho">Contraseña inicial
+          <div class="clave-entrada"><input id="claveNueva" type="password" name="contrasena" minlength="8" required autocomplete="new-password" aria-describedby="claveEstado claveAyuda" placeholder="Mínimo 8 caracteres"><button type="button" id="alternarClave" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button></div>
+          <span id="claveAyuda" class="ayuda-campo">Mínimo 8 caracteres y máximo 72 bytes (límite de bcrypt).</span>
+          <span id="claveEstado" class="clave-estado" aria-live="polite">Introduce una contraseña para comprobarla.</span>
+        </label>
+      </div>
+      <div class="modal-acciones"><button type="button" class="modal-cancelar" data-cerrar>Cancelar</button><button type="submit" class="modal-guardar">Crear usuario</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="modalEditar" class="usuarios-modal" aria-labelledby="tituloEditar" th:attr="data-reabrir=${editarDatos != null}">
+    <form id="formEditar" method="post" class="usuarios-form" th:attr="data-url-base=@{/usuarios/},data-editar-id=${editarDatos != null ? editarDatos.id : ''}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="modal-cabecera"><div><p class="section-kicker">CONFIGURACIÓN DE CUENTA</p><h2 id="tituloEditar">Editar usuario</h2><p id="editUsername">@usuario</p></div><button type="button" class="modal-cerrar" data-cerrar aria-label="Cerrar">×</button></div>
+      <div class="modal-error" role="alert" th:if="${editarError}" th:text="${editarError}"></div>
+      <div class="usuarios-campos">
+        <label>Nombre <input name="nombre" maxlength="100" required autocomplete="off" th:value="${editarDatos != null ? editarDatos.nombre : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label>Apellido <input name="apellido" maxlength="100" required autocomplete="off" th:value="${editarDatos != null ? editarDatos.apellido : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label class="campo-ancho">Correo electrónico <input type="email" name="correo" maxlength="100" required autocomplete="off" th:value="${editarDatos != null ? editarDatos.correo : ''}"><span class="campo-estado" aria-live="polite"></span></label>
+        <label class="campo-ancho">Rol <select name="idRol" required><option th:each="r : ${roles}" th:value="${r.id_rol}" th:text="${r.nombre}" th:selected="${editarDatos != null and r.id_rol == editarDatos.idRol}">OPERATIVO</option></select><span class="ayuda-campo">Cambiar el rol modifica los permisos asociados a esta cuenta.</span></label>
+      </div>
+      <div class="modal-acciones"><button type="button" class="modal-cancelar" data-cerrar>Cancelar</button><button type="submit" class="modal-guardar">Guardar cambios</button></div>
+    </form>
+  </dialog>
   <div th:replace="~{layout/footer :: footer}"></div>
 </main></div></div>
 <script>
+// showModal asegura que el diálogo quede por encima del encabezado y reciba clics.
+const modalNuevo = document.getElementById('modalNuevo');
+const modalEditar = document.getElementById('modalEditar');
+document.getElementById('abrirNuevo')?.addEventListener('click', () => modalNuevo.showModal());
+document.querySelectorAll('[data-cerrar]').forEach(btn => btn.addEventListener('click', () => btn.closest('dialog').close()));
+document.querySelectorAll('.usuarios-editar').forEach(btn => btn.addEventListener('click', () => {
+  const d = btn.dataset;
+  const form = document.getElementById('formEditar');
+  form.action = form.dataset.urlBase + encodeURIComponent(d.id) + '/editar';
+  form.elements.namedItem('nombre').value = d.nombre;
+  form.elements.namedItem('apellido').value = d.apellido;
+  form.elements.namedItem('correo').value = d.correo;
+  form.elements.namedItem('idRol').value = d.rol;
+  form.querySelectorAll('.campo-estado').forEach(el => { el.textContent = ''; el.classList.remove('campo-invalido'); });
+  form.querySelectorAll('input').forEach(el => el.setCustomValidity(''));
+  document.getElementById('editUsername').textContent = '@' + d.username;
+  modalEditar.showModal();
+}));
+[modalNuevo, modalEditar].forEach(dialog => dialog.addEventListener('click', event => {
+  if (event.target === dialog) dialog.close();
+}));
+// Reabre la ventana tras errores de PostgreSQL, conservando los datos editables.
+const nuevoConError = modalNuevo.dataset.reabrir === 'true';
+const editarConError = modalEditar.dataset.reabrir === 'true';
+if (nuevoConError) modalNuevo.showModal();
+if (editarConError) {
+  const form = document.getElementById('formEditar');
+  const id = form.dataset.editarId;
+  if (id) {
+    form.action = form.dataset.urlBase + encodeURIComponent(id) + '/editar';
+    const fila = Array.from(document.querySelectorAll('.usuarios-editar')).find(b => b.dataset.id === id);
+    document.getElementById('editUsername').textContent = fila ? '@' + fila.dataset.username : 'Usuario #' + id;
+    modalEditar.showModal();
+  }
+}
+// Validación inmediata de contraseña, respetando el límite en bytes de PostgreSQL.
+// Reglas de entrada alineadas con sp_crear_usuario y sp_actualizar_usuario.
+// El listado permite detectar usernames repetidos inmediatamente; PostgreSQL valida
+// la unicidad al guardar, incluso si alguien creó el usuario en otra sesión.
+const usuariosExistentes = new Set(
+  Array.from(document.querySelectorAll('.usuarios-editar[data-username]'))
+    .map(b => b.dataset.username)
+);
+// Incluye cuentas que no tengan botón Editar (p. ej., cuenta propia).
+document.querySelectorAll('#filasUsuarios tr').forEach(fila => {
+  const cuenta = fila.querySelector('td small')?.textContent?.trim();
+  if (cuenta?.startsWith('@')) usuariosExistentes.add(cuenta.substring(1));
+});
+function validarCampo(input, mostrar = true) {
+  const valor = input.value.trim();
+  let error = '';
+  switch (input.name) {
+    case 'nombre':
+    case 'apellido':
+      if (!valor) error = 'Este campo es obligatorio.';
+      else if (valor.length > 100) error = 'Máximo 100 caracteres.';
+      break;
+    case 'username':
+      if (!/^[A-Za-z0-9_.-]{3,50}$/.test(valor))
+        error = 'Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.';
+      else if (usuariosExistentes.has(valor))
+        error = 'Este nombre de usuario ya existe.';
+      break;
+    case 'correo':
+      if (!valor || valor.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor))
+        error = 'Introduce un correo válido de hasta 100 caracteres.';
+      break;
+  }
+  // No mostrar un mensaje de error al abrir un formulario aún vacío.
+  if (!mostrar) return !error;
+  input.setCustomValidity(error);
+  const estado = input.closest('label')?.querySelector('.campo-estado');
+  if (estado) {
+    estado.textContent = error;
+    estado.classList.toggle('campo-invalido', !!error);
+  }
+  return !error;
+}
+for (const form of document.querySelectorAll('.usuarios-form')) {
+  form.querySelectorAll('input[name="nombre"], input[name="apellido"], input[name="username"], input[name="correo"]').forEach(input => {
+    input.addEventListener('input', () => validarCampo(input));
+    input.addEventListener('blur', () => validarCampo(input));
+  });
+  form.addEventListener('submit', event => {
+    let primero = null;
+    form.querySelectorAll('input[name="nombre"], input[name="apellido"], input[name="username"], input[name="correo"]').forEach(input => {
+      if (!validarCampo(input) && !primero) primero = input;
+    });
+    if (primero) {
+      event.preventDefault();
+      primero.reportValidity();
+      primero.focus();
+    }
+  });
+}
+const claveNueva = document.getElementById('claveNueva');
+const claveEstado = document.getElementById('claveEstado');
+const cuentaBytes = texto => new TextEncoder().encode(texto).length;
+function validarClave() {
+  const v = claveNueva.value;
+  let mensaje = '';
+  if (v.length > 0 && Array.from(v).length < 8) mensaje = 'Faltan caracteres: mínimo 8.';
+  else if (v.length > 0 && cuentaBytes(v) > 72) mensaje = 'La contraseña supera los 72 bytes permitidos por bcrypt.';
+  claveNueva.setCustomValidity(mensaje);
+  claveEstado.textContent = !v ? 'Introduce una contraseña para comprobarla.' : mensaje || 'Contraseña válida para las reglas de registro.';
+  claveEstado.classList.toggle('clave-invalida', Boolean(mensaje));
+  claveEstado.classList.toggle('clave-valida', Boolean(v) && !mensaje);
+}
+claveNueva.addEventListener('input', validarClave);
+claveNueva.addEventListener('blur', validarClave);
+document.getElementById('alternarClave').addEventListener('click', event => {
+  const visible = claveNueva.type === 'password';
+  claveNueva.type = visible ? 'text' : 'password';
+  event.currentTarget.textContent = visible ? 'Ocultar' : 'Mostrar';
+  event.currentTarget.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  event.currentTarget.setAttribute('aria-pressed', String(visible));
+});
+modalNuevo.querySelector('form').addEventListener('submit', event => {
+  validarClave();
+  if (!claveNueva.checkValidity()) {
+    event.preventDefault();
+    claveNueva.reportValidity();
+  }
+});
+
 const buscador = document.getElementById('buscarUsuarios');
 const filas = Array.from(document.querySelectorAll('#filasUsuarios tr'));
 buscador.addEventListener('input', () => {

@@ -14,13 +14,6 @@ public class ModuloController {
     private final JdbcTemplate jdbc;
     public ModuloController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    @GetMapping("/reportes")
-    public String pendiente(jakarta.servlet.http.HttpServletRequest request, Model model) {
-        String modulo = request.getRequestURI().substring(1);
-        model.addAttribute("modulo", modulo);
-        return "modulo-pendiente";
-    }
-
     @GetMapping("/perfil")
     public String perfil(Authentication auth, Model model) {
         var usuarios = jdbc.queryForList(
